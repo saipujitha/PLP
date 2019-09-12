@@ -228,7 +228,37 @@ public class ScannerTest {
 	
 	@Test 
 	 public	void test11() throws Exception {
-			Reader r = new StringReader("0100");
+			Reader r = new StringReader("010010000");
+			Scanner s = new Scanner(r);
+			Token t;
+		
+			show(t= s.getNext());
+			assertEquals(t.kind,INTLIT);
+			assertEquals(t.text,"0");
+			
+			show(t= s.getNext());
+			assertEquals(t.kind,INTLIT);
+			assertEquals(t.text,"10010000");
+		}
+	
+	@Test 
+	 public	void test57() throws Exception {
+			Reader r = new StringReader("0ac");
+			Scanner s = new Scanner(r);
+			Token t;
+		
+			show(t= s.getNext());
+			assertEquals(t.kind,INTLIT);
+			assertEquals(t.text,"0");
+			
+			show(t= s.getNext());
+			assertEquals(t.kind,NAME);
+			assertEquals(t.text,"ac");
+		}
+	
+	@Test 
+	 public	void test58() throws Exception {
+			Reader r = new StringReader("0100ac");
 			Scanner s = new Scanner(r);
 			Token t;
 		
@@ -239,6 +269,10 @@ public class ScannerTest {
 			show(t= s.getNext());
 			assertEquals(t.kind,INTLIT);
 			assertEquals(t.text,"100");
+			
+			show(t= s.getNext());
+			assertEquals(t.kind,NAME);
+			assertEquals(t.text,"ac");
 		}
 	
 	@Test 
@@ -791,7 +825,7 @@ public class ScannerTest {
 			 
 		}
 	
-	@Test
+	//@Test
 	public void test51() throws Exception {
 		String file = "testInputFiles\\test2.input"; 
 		Reader r = new BufferedReader(new FileReader(file));
@@ -836,10 +870,75 @@ public class ScannerTest {
 		Scanner s = new Scanner(r);
         Token t;
         
-		show(t= s.getNext());
-		 assertEquals(t.kind,EOF);
-		 assertEquals("--comment\n",t.text);
 		
+		  show(t= s.getNext()); assertEquals(t.kind,INTLIT);
+		  assertEquals("123",t.text);
+		 
+		  show(t= s.getNext());
+			 assertEquals(t.kind,STRINGLIT);
+			 assertEquals(t.text,"\"abc\"");
+			 
+        r.close();
+	}
+	
+	@Test
+	public void test55() throws Exception {
+		Reader r = new StringReader("\"ab\'c\'de\"");
+		Scanner s = new Scanner(r);
+        Token t;
+        
+		
+		  show(t= s.getNext());
+			 assertEquals(t.kind,STRINGLIT);
+			 assertEquals("\"ab\'c\'de\"", t.text);
+			 
+        r.close();
+	}
+	
+	@Test
+	public void test56() throws Exception {
+		Reader r = new StringReader("$");
+		Scanner s = new Scanner(r);
+        Token t;
+        
+		
+		  show(t= s.getNext());
+			 assertEquals(t.kind,NAME);
+			 assertEquals("$", t.text);
+			 
+        r.close();
+	}
+	
+	@Test
+	public void test59() throws Exception {
+		Reader r = new StringReader("\"abc\"");
+		Scanner s = new Scanner(r);
+        Token t;
+        
+		
+		  show(t= s.getNext());
+			 assertEquals(t.kind,STRINGLIT);
+			 assertEquals("\"abc\"", t.text);
+			 assertEquals("abc", t.getStringVal());
+			 
+        r.close();
+	}
+	
+	@Test
+	public void test60() throws Exception {
+		Reader r = new StringReader("abc\r\n123");
+		Scanner s = new Scanner(r);
+        Token t;
+        
+		  show(t= s.getNext());
+			 assertEquals(t.kind,NAME);
+			 assertEquals("abc", t.text);
+			// assertEquals("abc", t.getStringVal());
+			 
+			 show(t= s.getNext());
+			 assertEquals(t.kind,INTLIT);
+			 assertEquals("123", t.text);
+			 
         r.close();
 	}
 }

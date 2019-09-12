@@ -95,7 +95,7 @@ public class Scanner {
 			return new Token(Token.Kind.EOF, inputString, rowpos, linepos);
 		}
 		
-		if ((( Character.isJavaIdentifierStart(inpstr)) || (Character.isJavaIdentifierPart(inpstr))) && (kind != Kind.AFTER_DQUOTE)) {
+		if ((( Character.isJavaIdentifierStart(inpstr)) || (Character.isJavaIdentifierPart(inpstr))) && (kind != Kind.AFTER_DQUOTE) && (kind != Kind.COMMENT)) {
 			if(Character.isDigit(inpstr) && kind == Kind.NAME)
 			{kind = Kind.NAME;}
 			else if(Character.isDigit(inpstr) && (kind != Kind.NAME)) {
@@ -287,10 +287,31 @@ public class Scanner {
 				   if((iterator+1)<len) {
 				   iterator++;
 				   return getNext();}
-	   
+				   
+			case '\n':
+				 if((iterator+1)<len) {
+					   iterator++;
+					   linepos++;
+					   return getNext();}
+			case '\r':
+				 if((iterator+1)<len) {
+					   iterator++;
+					   linepos++;
+					   if(inputString.charAt(iterator) == '\n') {
+						   if((iterator+1)<len) {
+							   return getNext();
+						   }
+						   else {
+							   break;
+						   }
+					   }
+					  }
+			case '\t':
+				 if((iterator+1)<len) {
+					   iterator++;
+					   return getNext();}
 				   
 			};
-			
 			// iterator++;
 			break;
 		case AFTER_DQUOTE:
@@ -351,21 +372,17 @@ public class Scanner {
 			int inValue = Character.getNumericValue(inpstr);
 			sb.append(inpstr);
 			rowpos++;
-			if(inValue == 0 && sb.length()<2) {
+			if(inValue == 0 && sb.length()<=1) {
 				tok = new Token(Token.Kind.INTLIT, "0", rowpos, linepos);
 				sb = sbTemp;
+				kind = Kind.START;
 			      }
 			else {
 				if(((iterator+1)<len) && (Character.isDigit(inputString.charAt(iterator+1)))) {
-			    	if(inputString.charAt(iterator+1) == 0) {
-					tok = new Token(Token.Kind.INTLIT, sb.toString(), rowpos, linepos);
-					kind = Kind.START;
-				             }
-				else {
 					tok = new Token(Token.Kind.INTLIT, sb.toString(), rowpos, linepos);
 					iterator++;
 					return getNext();
-				     }}
+				     }
 				else {
 					tok = new Token(Token.Kind.INTLIT, sb.toString(), rowpos, linepos);
 					sb = sbTemp;
@@ -431,27 +448,35 @@ public class Scanner {
 				
 			break;
 		case COMMENT:
-			if(inpstr!= '\\') {
-				sb.append(inpstr);
+			if((inpstr!= '\r') && (inpstr!= '\n')) {
+				//sb.append(inpstr);
 				rowpos++;
 				if((iterator+1)<len) {
 					iterator++;
 					return getNext();
 				}
-				else if(((iterator+2)==len) && (inpstr!= '\\')){
+				else {
 					throw new LexicalException("Useful error message");
 				//tok = new Token(Token.Kind.EOF, inputString, rowpos, linepos);
 				}
 			}
 			else {
+				/*
+				boolean temp = false; 
 				if((iterator+1)<len) {
-					
+					temp = spcList(inputString.charAt(iterator+1));
 				}
-				sb.append(inpstr);
-				rowpos++;
-			//	tok = new Token(Token.Kind.STRINGLIT, sb.toString(), rowpos, linepos);
-				kind = Kind.START;
-				sb = sbTemp;
+				if(temp) {*/
+					iterator++;
+					kind = Kind.START;
+					sb = sbTemp;
+					if((iterator+1)<len) {
+						return getNext();
+					}
+					
+				/*
+				 * } else { throw new LexicalException("Useful error message"); }
+				 */
 			     }
 			break;
 	default:
