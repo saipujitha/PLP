@@ -76,7 +76,7 @@ public class ScannerTest {
 	 * Example showing how to read the input from a file.  Otherwise it is the same as test1.
 	 *
 	 */
-	@Test
+	//@Test
 	public void test2() throws Exception {
 		String file = "testInputFiles\\test2.input"; 
 		Reader r = new BufferedReader(new FileReader(file));
@@ -120,6 +120,12 @@ public class ScannerTest {
 			show(t= s.getNext());
 			assertEquals(t.kind,NAME);
 			assertEquals(t.text,"a1c");
+			
+			show(t= s.getNext());
+			assertEquals(t.kind,EOF);
+			
+			show(t= s.getNext());
+			assertEquals(t.kind,EOF);
 		}
 	
 	@Test 
@@ -135,6 +141,9 @@ public class ScannerTest {
 			show(t = s.getNext());
 			assertEquals(t.kind,OP_PLUS);
 			assertEquals(t.text,"+");
+			
+			show(t= s.getNext());
+			assertEquals(t.kind,EOF);
 			
 		}
 	
@@ -510,7 +519,7 @@ public class ScannerTest {
 			assertEquals(t.text,"::");
 		}
 	
-	@Test 
+	//@Test 
 	 public	void tes31() throws Exception {
 			Reader r = new StringReader("\\n");
 			Scanner s = new Scanner(r);
@@ -518,7 +527,7 @@ public class ScannerTest {
 			
 			show(t= s.getNext());
 			assertEquals(t.kind,EOF);
-			assertEquals(t.text,"\\n");
+			assertEquals("\n",t.text);
 		}
 	
 	@Test 
@@ -546,11 +555,8 @@ public class ScannerTest {
 			assertEquals(t.text,"abc");
 			
 			show(t= s.getNext());
-			assertEquals(t.kind,EOF);
-			
-			show(t= s.getNext());
 			assertEquals(t.kind,INTLIT);
-			assertEquals(t.text,"\n123");
+			assertEquals(t.text,"123");
 		}
 	
 	@Test 
@@ -558,9 +564,6 @@ public class ScannerTest {
 			Reader r = new StringReader("\\nabb");
 			Scanner s = new Scanner(r);
 			Token t;
-			
-			show(t= s.getNext());
-			assertEquals(t.kind,EOF);
 			
 			show(t= s.getNext());
 			assertEquals(t.kind,NAME);
@@ -650,13 +653,25 @@ public class ScannerTest {
 	
 	@Test 
 	 public	void tes37() throws Exception {
-			Reader r = new StringReader("\"abc\ndef\"");
+			Reader r = new StringReader("\"abc\ndef\"");  
 			Scanner s = new Scanner(r);
 			Token t;
 		
 			show(t= s.getNext());
 			 assertEquals(t.kind,STRINGLIT);
 			 assertEquals(t.text,"\"abc\ndef\"");
+			 
+		}
+	
+	@Test 
+	 public	void tes48() throws Exception {
+			Reader r = new StringReader("\"abc\'m\'def\"");  
+			Scanner s = new Scanner(r);
+			Token t;
+		
+			show(t= s.getNext());
+			 assertEquals(t.kind,STRINGLIT);
+			 assertEquals(t.text,"\"abc\'m\'def\"");
 			 
 		}
 	
@@ -687,5 +702,145 @@ public class ScannerTest {
 			 assertEquals(t.text,"else");
 			 
 		}
+
+	@Test 
+	 public	void tes43() throws Exception {
+			Reader r = new StringReader("a\"b\"c");
+			Scanner s = new Scanner(r);
+			Token t;
+		
+			show(t= s.getNext());
+			 assertEquals(t.kind,NAME);
+			 assertEquals(t.text,"a");
+			 
+			 show(t= s.getNext());
+			 assertEquals(t.kind,STRINGLIT);
+			 assertEquals(t.text,"\"b\"");
+			 
+			 show(t= s.getNext());
+			 assertEquals(t.kind,NAME);
+			 assertEquals(t.text,"c");
+			 
+		}
+	
+	//@Test 
+	 public	void tes44() throws Exception {
+			Reader r = new StringReader("\\b");
+			Scanner s = new Scanner(r);
+			Token t;
+			
+			show(t= s.getNext());
+			assertEquals(t.kind,EOF);
+			assertEquals(t.text,"\b");
+		}
+	
+	//@Test 
+	 public	void tes45() throws Exception {
+			Reader r = new StringReader("\\a");
+			Scanner s = new Scanner(r);
+			Token t;
+			
+			show(t= s.getNext());
+			assertEquals(t.kind,EOF);
+			assertEquals(t.text,"\u5C61");
+		}
+	
+	@Test 
+	 public	void tes46() throws Exception {
+			Reader r = new StringReader("\\v");
+			Scanner s = new Scanner(r);
+			Token t;
+			
+			show(t= s.getNext());
+			assertEquals(t.kind,EOF);
+			assertEquals(t.text,"\u5C76");
+		}
+	
+	//@Test 
+	 public	void tes47() throws Exception {
+			Reader r = new StringReader("\\v\\a");
+			Scanner s = new Scanner(r);
+			Token t;
+			
+			show(t= s.getNext());
+			assertEquals(t.kind,EOF);
+			assertEquals(t.text,"\\v\\a");
+			
+		}
+	
+	@Test 
+	 public	void tes49() throws Exception {
+			Reader r = new StringReader("abb\\v");
+			Scanner s = new Scanner(r);
+			Token t;
+			
+			show(t= s.getNext());
+			assertEquals(t.kind,NAME);
+			assertEquals(t.text,"abb");
+		}
+	
+	@Test 
+	 public	void tes50() throws Exception {
+			Reader r = new StringReader("\"abc\'def\"");  
+			Scanner s = new Scanner(r);
+			Token t;
+		
+			show(t= s.getNext());
+			 assertEquals(t.kind,STRINGLIT);
+			 assertEquals(t.text,"\"abc\'def\"");
+			 
+		}
+	
+	@Test
+	public void test51() throws Exception {
+		String file = "testInputFiles\\test2.input"; 
+		Reader r = new BufferedReader(new FileReader(file));
+		Scanner s = new Scanner(r);
+        Token t;
+        
+		show(t= s.getNext());
+		 assertEquals(t.kind,STRINGLIT);
+		 assertEquals("\'a\'",t.text);
+		
+        r.close();
+	}
+	
+	@Test 
+	 public	void tes52() throws Exception {
+			Reader r = new StringReader("\'abc\'");  
+			Scanner s = new Scanner(r);
+			Token t;
+		
+			show(t= s.getNext());
+			 assertEquals(t.kind,STRINGLIT);
+			 assertEquals(t.text,"\'abc\'");
+			 
+		}
+	
+	@Test 
+	 public	void tes53() throws Exception {
+			Reader r = new StringReader("\"if\"");
+			Scanner s = new Scanner(r);
+			Token t;
+		
+			show(t= s.getNext());
+			 assertEquals(t.kind,STRINGLIT);
+			 assertEquals(t.text,"\"if\"");
+			 
+		}
+	
+	@Test
+	public void test54() throws Exception {
+		String file = "testInputFiles\\test2.input"; 
+		Reader r = new BufferedReader(new FileReader(file));
+		Scanner s = new Scanner(r);
+        Token t;
+        
+		show(t= s.getNext());
+		 assertEquals(t.kind,EOF);
+		 assertEquals("--comment\n",t.text);
+		
+        r.close();
+	}
 }
 

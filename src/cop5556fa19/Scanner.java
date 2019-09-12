@@ -30,8 +30,8 @@ public class Scanner {
 	int iterator = 0;
 	static int listIter = -1;
 	StringBuilder sb = new StringBuilder();
-	StringBuilder sbTemp = new StringBuilder();
 	String inputString = "";
+	boolean squote = false;
 	Kind kind;
 	// char[] chrArray = new chrArray[8];
 
@@ -42,40 +42,24 @@ public class Scanner {
 		}
 	}
 
-	public StringBuilder spcList(char ch) {
+	public boolean spcList(char ch) {
 
 		StringBuilder sb = new StringBuilder();
+		boolean result = true;
 		switch (ch) {
-		case 'b':
-			sb.append('\b');
-			break;
-		case 't':
-			sb.append('\t');
-			break;
-		case 'f':
-			sb.append('\f');
-			break;
 		case 'r':
-			sb.append('\r'); // for completeness, line termination chars not allowed in String literals
+			sb.append('\r');
 			break;
 		case 'n':
-			sb.append('\n'); // for completeness, line termination chars not allowed in String literals
+			sb.append('\n');
 			break;
-		case '\"':
-			sb.append('\"');
-			break;
-		case '\'':
-			sb.append('\'');
-			break;
-		case '\\':
-			sb.append('\\');
-			break;
+		
 		default:
-			// assert false;
+			result = false;
 			break;
 		}
 		// boolean result = whitespaceList.contains(input)? true: false;
-		return sb;
+		return result;
 	}
 
 
@@ -93,16 +77,23 @@ public class Scanner {
 
 	public Token getNext() throws Exception {
 
-		Token tok = new Token(Token.Kind.EOF, inputString, rowpos, linepos);
+		Token tok = new Token(Token.Kind.EOF, sb.toString(), rowpos, linepos);
 		int len = inputString.length();
-		
+		StringBuilder sbTemp = new StringBuilder();
 		if (inputString == "") { // white space check
+			return new Token(Token.Kind.EOF, inputString, rowpos, linepos);
+		}
+		
+		if(!(iterator<len)) {
 			return new Token(Token.Kind.EOF, inputString, rowpos, linepos);
 		}
 		
 		char inpstr = inputString.charAt(iterator);
 		System.out.println("input:"+inputString+" inChar"+inpstr);
 		
+		if(!(iterator<len)) {
+			return new Token(Token.Kind.EOF, inputString, rowpos, linepos);
+		}
 		
 		if ((( Character.isJavaIdentifierStart(inpstr)) || (Character.isJavaIdentifierPart(inpstr))) && (kind != Kind.AFTER_DQUOTE)) {
 			if(Character.isDigit(inpstr) && kind == Kind.NAME)
@@ -121,6 +112,9 @@ public class Scanner {
 			rowpos++;
 		}
 		
+		if(kind == Kind.START) {
+			sb = sbTemp;
+		}
 		//Token tok = null;
 		switch (kind) {
 		case START:
@@ -155,6 +149,12 @@ public class Scanner {
 				break;
 			case '-':
 				tok = new Token(Token.Kind.OP_MINUS, "-", rowpos, linepos);
+				if( ((iterator+1)<len) &&(inputString.charAt(iterator+1) == '-')) {
+					iterator++;
+					rowpos++;
+					kind = Kind.COMMENT;
+					return getNext();
+				}
 				rowpos++;
 				break;
 			case '*':
@@ -279,20 +279,31 @@ public class Scanner {
 				   iterator++;
 				   return getNext();}
 				   
+			case '\'':
+				   kind = Kind.AFTER_DQUOTE;
+				   rowpos++;
+				   squote = true;
+				   sb.append(inpstr);
+				   if((iterator+1)<len) {
+				   iterator++;
+				   return getNext();}
+	   
+				   
 			};
 			
 			// iterator++;
 			break;
 		case AFTER_DQUOTE:
 			
-			if(inpstr!= '"') {
+			char quote = squote? '\'' : '"';
+			if(inpstr!= quote) {
 				sb.append(inpstr);
 				rowpos++;
 				if((iterator+1)<len) {
 					iterator++;
 					return getNext();
 				}
-				else if(((iterator+1)==len)&&(inpstr!= '"')){
+				else if(((iterator+1)==len) && (inpstr!= quote)){
 					throw new LexicalException("Useful error message");
 				//tok = new Token(Token.Kind.EOF, inputString, rowpos, linepos);
 				}
@@ -300,7 +311,10 @@ public class Scanner {
 			else {
 				sb.append(inpstr);
 				rowpos++;
+				squote = false;
 				tok = new Token(Token.Kind.STRINGLIT, sb.toString(), rowpos, linepos);
+				kind = Kind.START;
+				sb = sbTemp;
 			     }
 			
 			/*
@@ -309,7 +323,7 @@ public class Scanner {
 			 * Kind.START; } else if(Character.isJavaIdentifierPart(inpstr)) {
 			 * sb.append(inpstr); rowpos++; iterator++; return getNext(); } else {
 			 * 
-			 * }
+			 * } "a\"b\"c"
 			 */
 			break;
 		case NAME:  //"abc"
@@ -360,23 +374,33 @@ public class Scanner {
 			       }
 			break;
 		case ESCSEQ: 
-            boolean escflag = true;
             rowpos++;
+            boolean escflag = false;
 			switch (inputString.charAt(iterator)) {
 			case 'b':
-				sb.append('\b');
+				sb.append('\u5C62');
+				break;
+			case 'a':
+				sb.append('\u0007');
+				break;
+			case 'v':
+				sb.append('\u5C76');
 				break;
 			case 't':
 				sb.append('\t');
+				escflag = true;
 				break;
 			case 'f':
-				sb.append('\f');
+				sb.append('\u5C66');
+				escflag = true;
 				break;
 			case 'r':
 				sb.append('\r');
+				escflag = true;
 				break;
 			case 'n':
-				sb.append('\n');
+				sb.append('\u5C6E');
+				escflag = true;
 				break;
 			case '\"':
 				sb.append('\"');
@@ -389,20 +413,48 @@ public class Scanner {
 				break;
 			default:
 				 //tok = new Token(Token.Kind.EOF, sb.toString(), rowpos, linepos);
-				escflag = false;
 				throw new LexicalException("Useful error message");
 			}
 			if(escflag) {
+				linepos++;
+			}
 				kind = Kind.START;
 				rowpos = 0;
-				linepos++;
 				System.out.println("pos, line:"+rowpos+","+linepos);
-				//tok = new Token(Token.Kind.ESCSEQ, sb.toString(), rowpos, linepos);
-				sb = sbTemp;
+			    tok = new Token(Token.Kind.EOF, sb.toString(), rowpos, linepos);
+			    sb = sbTemp;
+				if((iterator+1)<len){
+					iterator++;
+					return getNext();
+				}
+				//start from here
+				
+			break;
+		case COMMENT:
+			if(inpstr!= '\\') {
+				sb.append(inpstr);
+				rowpos++;
+				if((iterator+1)<len) {
+					iterator++;
+					return getNext();
+				}
+				else if(((iterator+2)==len) && (inpstr!= '\\')){
+					throw new LexicalException("Useful error message");
+				//tok = new Token(Token.Kind.EOF, inputString, rowpos, linepos);
+				}
 			}
+			else {
+				if((iterator+1)<len) {
+					
+				}
+				sb.append(inpstr);
+				rowpos++;
+			//	tok = new Token(Token.Kind.STRINGLIT, sb.toString(), rowpos, linepos);
+				kind = Kind.START;
+				sb = sbTemp;
+			     }
 			break;
 	default:
-		tok = new Token(Token.Kind.EOF, sb.toString(), rowpos, linepos);
 	break;
 
 		}

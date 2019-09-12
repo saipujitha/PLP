@@ -76,7 +76,7 @@ public class Token {
 		DOT,   // .
 		DOTDOT,  // ..
 		DOTDOTDOT, // ...
-		STRINGLIT, 
+		STRINGLIT,
 		EOF;
 	}
 	
