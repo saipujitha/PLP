@@ -787,7 +787,7 @@ public class ScannerTest {
 			
 			show(t= s.getNext());
 			assertEquals(t.kind,EOF);
-			assertEquals(t.text,"\u5C76");
+			assertEquals(t.text,"\u0011");
 		}
 	
 	//@Test 
@@ -798,9 +798,24 @@ public class ScannerTest {
 			
 			show(t= s.getNext());
 			assertEquals(t.kind,EOF);
-			assertEquals(t.text,"\\v\\a");
+			assertEquals(t.text,"\u0013");
 			
 		}
+	@Test 
+		 public	void test61() throws Exception {
+				Reader r = new StringReader("a\nb");
+				Scanner s = new Scanner(r);
+				Token t;
+				
+				show(t= s.getNext());
+				assertEquals(t.kind,NAME);
+				assertEquals(t.text,"a");
+				
+				show(t= s.getNext());
+				assertEquals(t.kind,NAME);
+				assertEquals(t.text,"b");
+				
+			}
 	
 	@Test 
 	 public	void tes49() throws Exception {

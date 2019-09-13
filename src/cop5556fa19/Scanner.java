@@ -395,30 +395,39 @@ public class Scanner {
             boolean escflag = false;
 			switch (inputString.charAt(iterator)) {
 			case 'b':
-				sb.append('\u5C62');
+				sb.append('\u0008');
 				break;
 			case 'a':
 				sb.append('\u0007');
 				break;
 			case 'v':
-				sb.append('\u5C76');
+				sb.append('\u0011');
 				break;
 			case 't':
 				sb.append('\t');
 				escflag = true;
 				break;
 			case 'f':
-				sb.append('\u5C66');
+				sb.append('\u0012');
 				escflag = true;
 				break;
 			case 'r':
-				sb.append('\r');
+				sb.append('\u0013');
 				escflag = true;
 				break;
 			case 'n':
-				sb.append('\u5C6E');
+				sb.append('\n');
 				escflag = true;
 				break;
+			/*
+			 * case'u': if((iterator +4)<len) { int inc=0; iterator++; while(inc<4) {
+			 * sb.append(inputString.charAt(iterator)); inc++; iterator++; } String uni =
+			 * sb.toString(); if(uni.equals("\u0007") || uni.equals("\u0008") ||
+			 * uni.equals("\u0007") || uni.equals("\u0007") ) { break; } else {throw new
+			 * LexicalException("Useful error message"); }
+			 * 
+			 * } else { throw new LexicalException("Useful error message"); }
+			 */
 			case '\"':
 				sb.append('\"');
 				break;
