@@ -81,7 +81,7 @@ public class Token {
 	}
 	
 	public final Kind kind;
-	public final String text;
+	public String text;
 	public final int pos;
 	public final int line;
 	

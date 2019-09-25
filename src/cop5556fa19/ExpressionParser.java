@@ -16,7 +16,6 @@ package cop5556fa19;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-
 import cop5556fa19.AST.Block;
 import cop5556fa19.AST.Exp;
 import cop5556fa19.AST.ExpBinary;
@@ -60,23 +59,120 @@ public class ExpressionParser {
 		t = scanner.getNext(); //establish invariant
 	}
 
-
+	Exp e10 = null;
+    int iterator = 0;
+    
+    
 	Exp exp() throws Exception {
 		Token first = t;
-		Exp e0 = andExp();
-		while (isKind(KW_or)) {
+		 Exp e0 = null;
+		 iterator++;
+		switch(t.kind)
+		{
+		case LPAREN:
+		{
+			consume();
+			e0 = andExp();
+			break;
+		}
+		case OP_MINUS:
+		{
+			Token op = consume();
+			   Exp e1 = andExp(); 
+			   if(iterator > 1) {
+				   e0 = new  ExpBinary(first, e10, op, e1);
+				   }
+				   else {
+					   e0 = new  ExpUnary(first, op.kind, e1);
+				   }
+			break;
+		}
+		case DOTDOT:
+		{
 			Token op = consume();
 			Exp e1 = andExp();
-			e0 = new ExpBinary(first, e0, op, e1);
+			e0 = new ExpBinary(first,e10,op.kind,exp());
+			break;
 		}
+		
+		case OP_POW:
+		{
+			Token op = consume();
+			Exp e1 = andExp();
+			e0 = new ExpBinary(first,e10,op.kind,exp());
+			break;
+		}
+		
+		default:
+			//e10 = e0;
+		if(t.kind == OP_PLUS || t.kind == OP_MINUS )
+		{     Exp e1 = null;
+			Token op = consume(); // 1+2*3
+			if(t.kind != EOF) {
+				 e1 = andExp(); 
+			}
+				   e0 = new ExpBinary(first,e10,op.kind,exp());
+			break;
+		}
+			e0 = andExp();
+			break;
+		}
+
+		e10 = e0;
+		consume();
+     if(t.kind != Token.Kind.EOF && t.kind != Token.Kind.RPAREN) {
+    	 e0=exp();
+     }
 		return e0;
 	}
 
 	
 private Exp andExp() throws Exception{
-		// TODO Auto-generated method stub
-		throw new UnsupportedOperationException("andExp");  //I find this is a more useful placeholder than returning null.
+   
+	switch(t.kind) {
+	
+	case NAME:
+	{
+		ExpName en = new ExpName(t);
+    	return en;
 	}
+	case STRINGLIT:
+	{
+		//t.text = t.getStringVal();
+		ExpString es = new ExpString(t);
+		return es;	
+	}
+	case INTLIT:
+	{
+		ExpInt ei = new ExpInt(t);
+		return ei;
+	}	
+	case KW_true:
+	{
+		ExpTrue et = new ExpTrue(t);
+		return et;
+	}
+	case KW_false:
+	{
+		ExpFalse ef = new ExpFalse(t);
+		return ef;
+	}
+	default:
+		error( t, t.text);
+	}
+return e10;
+}
+
+
+	private void checkNext() {
+		try {
+			consume();
+			
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}	
+}
 
 
 	private Block block() {

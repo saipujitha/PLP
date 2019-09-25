@@ -88,7 +88,7 @@ class ExpressionParserTest {
 		String input = "\"string\"";
 		Exp e = parseAndShow(input);
 		assertEquals(ExpString.class, e.getClass());
-		assertEquals("string", ((ExpString) e).v);
+		assertEquals("\"string\"", ((ExpString) e).v);
 	}
 
 	@Test
@@ -98,7 +98,7 @@ class ExpressionParserTest {
 		assertEquals(ExpTrue.class, e.getClass());
 	}
 
-	@Test
+    @Test
 	void testBoolean1() throws Exception {
 		String input = "false";
 		Exp e = parseAndShow(input);
@@ -138,10 +138,7 @@ class ExpressionParserTest {
 	void testRightAssoc() throws Exception {
 		String input = "\"concat\" .. \"is\"..\"right associative\"";
 		Exp e = parseAndShow(input);
-		Exp expected = Expressions.makeBinary(
-				Expressions.makeExpString("concat")
-				, DOTDOT
-				, Expressions.makeBinary("is",DOTDOT,"right associative"));
+		Exp expected = Expressions.makeBinary(Expressions.makeExpString("\"concat\""), DOTDOT, Expressions.makeBinary("\"is\"",DOTDOT,"\"right associative\""));
 		show("expected=" + expected);
 		assertEquals(expected,e);
 	}

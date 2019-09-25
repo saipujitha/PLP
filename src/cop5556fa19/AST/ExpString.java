@@ -21,8 +21,8 @@ public class ExpString extends Exp {
 
 	public ExpString(Token firstToken) {
 		super(firstToken);
-		String text = firstToken.text;
-		this.v = text;
+		//String text = firstToken.text;
+		this.v = firstToken.text;
 	}
 	
 	@Override
