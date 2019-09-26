@@ -65,115 +65,119 @@ public class ExpressionParser {
     
 	Exp exp() throws Exception {
 		Token first = t;
-		 Exp e0 = null;
 		 iterator++;
-		switch(t.kind)
-		{
-		case LPAREN:
-		{
-			consume();
-			e0 = andExp();
-			break;
-		}
-		case OP_MINUS:
-		{
-			Token op = consume();
-			   Exp e1 = andExp(); 
-			   if(iterator > 1) {
-				   e0 = new  ExpBinary(first, e10, op, e1);
-				   }
-				   else {
-					   e0 = new  ExpUnary(first, op.kind, e1);
-				   }
-			break;
-		}
-		case DOTDOT:
-		{
-			Token op = consume();
-			Exp e1 = andExp();
-			e0 = new ExpBinary(first,e10,op.kind,exp());
-			break;
-		}
-		
-		case OP_POW:
-		{
-			Token op = consume();
-			Exp e1 = andExp();
-			e0 = new ExpBinary(first,e10,op.kind,exp());
-			break;
-		}
-		
-		default:
-			//e10 = e0;
-		if(t.kind == OP_PLUS || t.kind == OP_MINUS )
-		{     Exp e1 = null;
-			Token op = consume(); // 1+2*3
-			if(t.kind != EOF) {
-				 e1 = andExp(); 
+		 Exp e0 = andExp();
+			while (isKind(KW_or)) {
+				Token op = consume();
+				Exp e1 = andExp();
+				e0 = new ExpBinary(first, e0, op, e1);
 			}
-				   e0 = new ExpBinary(first,e10,op.kind,exp());
-			break;
-		}
-			e0 = andExp();
-			break;
-		}
-
-		e10 = e0;
-		consume();
-     if(t.kind != Token.Kind.EOF && t.kind != Token.Kind.RPAREN) {
-    	 e0=exp();
-     }
 		return e0;
 	}
 
 	
 private Exp andExp() throws Exception{
-   
-	switch(t.kind) {
+   Token first = t;
+	Exp e0 = checkForPlus();
 	
-	case NAME:
-	{
-		ExpName en = new ExpName(t);
-    	return en;
+	while (isKind(KW_and)) {
+		Token op = consume();
+		Exp e1 = andExp();
+		e0 = new ExpBinary(first, e0, op, e1);
 	}
-	case STRINGLIT:
-	{
-		//t.text = t.getStringVal();
-		ExpString es = new ExpString(t);
-		return es;	
-	}
-	case INTLIT:
-	{
-		ExpInt ei = new ExpInt(t);
-		return ei;
-	}	
-	case KW_true:
-	{
-		ExpTrue et = new ExpTrue(t);
-		return et;
-	}
-	case KW_false:
-	{
-		ExpFalse ef = new ExpFalse(t);
-		return ef;
-	}
-	default:
-		error( t, t.text);
-	}
-return e10;
+return e0;
 }
 
 
-	private void checkNext() {
-		try {
-			consume();
+	private Exp checkForPlus() throws Exception {
+		Token first = t;
+		Exp e0 = checkForPower();
+		 //1+2*3
+		while(isKind(OP_PLUS) || isKind(OP_MINUS)) {
+			Token op = consume();
+			Exp e1 = checkForPower();
+			e0 = new ExpBinary(first, e0, op, e1);
+		}
+		return e0;	
+}
+	
+
+	private Exp checkForPower() throws Exception {
+		Token first = t;
+		Exp e0 = term();
+		while(t.kind == OP_TIMES) {
+			Token op = consume();
+			Exp e1 = term();
+			e0 = new ExpBinary(first, e0, op, e1);
+		}
+		return e0;	
+}	
+
+	 private Exp term() throws Exception{
+		 switch(t.kind) {   // 1+2*3
 			
-		} catch (Exception e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}	
-}
-
+			case NAME:
+			{
+				ExpName en = new ExpName(t);
+				consume();
+		    	return en;
+			}
+			case STRINGLIT:
+			{
+				ExpString es = new ExpString(t);
+				consume();
+				return es;	
+			}
+			case INTLIT:
+			{
+				ExpInt ei = new ExpInt(t);
+				consume();
+				return ei;
+			}	
+			case KW_true:
+			{
+				ExpTrue et = new ExpTrue(t);
+				consume();
+				return et;
+			}
+			case KW_false:
+			{
+				ExpFalse ef = new ExpFalse(t);
+				consume();
+				return ef;
+			}
+			case LPAREN:
+			{
+				consume();
+				return exp();
+			}
+			case RPAREN:
+			{
+				consume();
+				return term();
+			}
+			case OP_HASH:
+			{
+				e10 = new ExpUnary(t,OP_HASH,exp());
+			}
+			case OP_MINUS:
+			{
+				e10 = new ExpUnary(t,OP_MINUS,exp());
+			}
+			case KW_not:
+			{
+				e10 = new ExpUnary(t,KW_not,exp());
+			}
+			case BIT_XOR:
+			{
+				e10 = new ExpUnary(t,BIT_XOR,exp());
+			}
+			default:
+				consume();
+				return e10;
+			}
+		
+	 }
 
 	private Block block() {
 		return new Block(null);  //this is OK for Assignment 2
