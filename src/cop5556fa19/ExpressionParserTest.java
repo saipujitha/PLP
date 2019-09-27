@@ -271,6 +271,42 @@ class ExpressionParserTest {
 			});
 	}
 	
+	@Test
+	void testRight1() throws Exception {
+		String input = "1^2^3+4";
+		Exp e = parseAndShow(input);
+		Exp expected =Expressions.makeBinary(Expressions.makeBinary( Expressions.makeInt(1)
+				, OP_POW
+		, Expressions.makeBinary(Expressions.makeInt(2),OP_POW,Expressions.makeInt(3))),OP_PLUS,Expressions.makeInt(4));
+		show("expected=" + expected);
+		assertEquals(expected,e);
+		
+	}
+	
+	@Test
+	void testPowerPrecedence() throws Exception {
+		String input = "1^2^3^4+5";
+		Exp e = parseAndShow(input);
+		Exp expected =Expressions.makeBinary(Expressions.makeBinary( Expressions.makeInt(1)
+				, OP_POW
+		, Expressions.makeBinary(Expressions.makeInt(2),OP_POW,Expressions.makeBinary(Expressions.makeInt(3),OP_POW,Expressions.makeInt(4)))),OP_PLUS,Expressions.makeInt(5));
+		show("expected=" + expected);
+		assertEquals(expected,e);
+		
+	}
+	
+	@Test
+	void testDotdot() throws Exception {
+		String input = "1..2..3..4|5";
+		Exp e = parseAndShow(input);
+		Exp expected =Expressions.makeBinary(Expressions.makeBinary( Expressions.makeInt(1)
+				, DOTDOT
+		, Expressions.makeBinary(Expressions.makeInt(2),DOTDOT,Expressions.makeBinary(Expressions.makeInt(3),DOTDOT,Expressions.makeInt(4)))),BIT_OR,Expressions.makeInt(5));
+		show("expected=" + expected);
+		assertEquals(expected,e);
+		
+	}
+	
 	/*
 	 * @Test void testLeftAssoc1() throws Exception { String input =
 	 * "\"1\" + \"2\" * \"3\""; Exp e = parseAndShow(input); Exp expected =

@@ -243,7 +243,7 @@ private Exp checkForDotdot() throws Exception {
 				/*
 				 * Exp tmp =e0; e0 = e1;
 				 */
-			     e0 = new ExpBinary(first, e0,DOTDOT, Expressions.makeBinary(e1,consume().kind,andExp()));
+			     e0 = new ExpBinary(first, e0,DOTDOT, Expressions.makeBinary(e1,consume().kind,checkForDotdot()));
 		}
 		else {
 		e0 = new ExpBinary(first, e0, op, e1);}
@@ -283,7 +283,7 @@ private Exp checkForDotdot() throws Exception {
 	private Exp checkForPow() throws Exception {
 		Token first = t;
 		Exp e0 = term();
-		 //1+2*3
+		 //1^2^3+4
 		while(isKind(OP_POW)) {
 			Token op = consume();
 			Exp e1 = term();
@@ -291,7 +291,7 @@ private Exp checkForDotdot() throws Exception {
 					/*
 					 * Exp tmp =e0; e0 = e1;
 					 */
-				     e0 = new ExpBinary(first, e0,OP_POW, Expressions.makeBinary(e1,consume().kind,andExp()));
+				     e0 = new ExpBinary(first, e0,OP_POW, Expressions.makeBinary(e1,consume().kind,checkForPow()));
 			}
 			else {
 			e0 = new ExpBinary(first, e0, op, e1);}
