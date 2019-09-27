@@ -29,6 +29,7 @@ import cop5556fa19.AST.ExpTable;
 import cop5556fa19.AST.ExpTrue;
 import cop5556fa19.AST.ExpUnary;
 import cop5556fa19.AST.ExpVarArgs;
+import cop5556fa19.AST.Expressions;
 import cop5556fa19.AST.Field;
 import cop5556fa19.AST.FieldExpKey;
 import cop5556fa19.AST.FieldImplicitKey;
@@ -60,90 +61,359 @@ public class ExpressionParser {
 	}
 
 	Exp e10 = null;
-    int iterator = 0;
-    
+    boolean Nameflag = false;
+    boolean hasVarArgs = false;
+	private ParList p;
+	private FuncBody functionbody;
+    List<Field> fieldList = new ArrayList<>();
     
 	Exp exp() throws Exception {
 		Token first = t;
-		 iterator++;
+		
+		
+         if(isKind(LCURLY)){
+        	 consume();
+        	 e10 = tableConstructor(); 
+        	 return e10;
+         }
+		 
+         
 		 Exp e0 = andExp();
 			while (isKind(KW_or)) {
 				Token op = consume();
 				Exp e1 = andExp();
 				e0 = new ExpBinary(first, e0, op, e1);
 			}
+			
 		return e0;
 	}
-
 	
+private Exp tableConstructor() throws Exception {
+	Token first = t; 
+	Exp e0,e1 = null;
+	Nameflag = false;
+	//List<Field> fieldList = new ArrayList<>();
+	while(isKind(RCURLY) == false ) {
+		if(isKind(LSQUARE)) {
+			fieldExpGen();
+			if(isKind(COMMA) || isKind(SEMI)) {
+				consume();
+			}else if(isKind(RCURLY)) {
+				break;
+			}
+			else {
+				error(t,t.text);
+				break;
+			}
+		}else {
+			e0 = exp();
+			if(Nameflag == false){
+				FieldImplicitKey fimp = new FieldImplicitKey(first,e0);
+				fieldList.add(fimp);
+			}
+			if(isKind(COMMA) || isKind(SEMI)) {
+				consume();
+			}else if(isKind(RCURLY)) {
+				break;
+			}
+			else {
+				error(t,t.text);
+	 			break;
+			}
+		}
+		
+	}
+	ExpTable exptab = new ExpTable(first,fieldList);
+	return exptab;
+}	
+
+private void fieldExpGen() throws Exception {
+	Token first = t; 
+	Exp e0,e1 = null;
+//	FieldExpKey result = new Field(); 
+	if(isKind(LSQUARE)) {
+		consume();
+		e0 = exp();
+		if(isKind(RSQUARE)) {
+			consume();
+		}else {
+			error(t,t.text);
+		      }
+		   if(isKind(ASSIGN)) {
+			  consume();
+			  e1 = exp();
+		   }else {
+			   error(t,t.text);
+		   }
+   FieldExpKey fexpkey = new FieldExpKey(first,e0,e1);
+   fieldList.add(fexpkey);
+	}else {
+		error(t,t.text);
+	}
+	} 
+
+private void fieldNameGen(Name name) throws Exception{
+	Token first = t;
+	 consume();
+	 Exp e0 = exp();
+	 FieldNameKey fnamkey = new FieldNameKey(first,name,e0);
+	 fieldList.add(fnamkey);
+}
+
 private Exp andExp() throws Exception{
    Token first = t;
-	Exp e0 = checkForPlus();
+	Exp e0 = checkForLT();
 	
 	while (isKind(KW_and)) {
 		Token op = consume();
-		Exp e1 = andExp();
+		Exp e1 = checkForLT();
 		e0 = new ExpBinary(first, e0, op, e1);
 	}
 return e0;
+} 
+
+private Exp checkForLT() throws Exception {
+	Token first = t;
+	Exp e0 = checkForBitOr();
+	 //1+2*3
+	while(isKind(REL_LT) || isKind(REL_GT) || isKind(REL_GE) || isKind(REL_LE) || isKind(REL_NOTEQ) || isKind(REL_EQEQ)) {
+		Token op = consume();
+		Exp e1 = checkForBitOr();
+		e0 = new ExpBinary(first, e0, op, e1);
+	}
+	return e0;	
 }
 
+private Exp checkForBitOr() throws Exception {
+	Token first = t;
+	Exp e0 = checkForBitXor();
+	 //1+2*3
+	while(isKind(BIT_OR)) {
+		Token op = consume();
+		Exp e1 = checkForBitXor();
+		e0 = new ExpBinary(first, e0, op, e1);
+	}
+	return e0;	
+}
+
+private Exp checkForBitXor() throws Exception {
+	Token first = t;
+	Exp e0 = checkForBitAmp();
+	 //1+2*3
+	while(isKind(BIT_XOR)) {
+		Token op = consume();
+		Exp e1 = checkForBitAmp();
+		e0 = new ExpBinary(first, e0, op, e1);
+	}
+	return e0;	
+}
+
+private Exp checkForBitAmp() throws Exception {
+	Token first = t;
+	Exp e0 = checkForBitShift();
+	 //1+2*3
+	while(isKind(BIT_AMP)) {
+		Token op = consume();
+		Exp e1 = checkForBitShift();
+		e0 = new ExpBinary(first, e0, op, e1);
+	}
+	return e0;	
+}
+
+private Exp checkForBitShift() throws Exception {
+	Token first = t;
+	Exp e0 = checkForDotdot();
+	 //1+2*3
+	while(isKind(BIT_SHIFTL) || isKind(BIT_SHIFTR)) {
+		Token op = consume();
+		Exp e1 = checkForDotdot();
+		e0 = new ExpBinary(first, e0, op, e1);
+	}
+	return e0;	
+}
+
+private Exp checkForDotdot() throws Exception {
+	Token first = t;
+	Exp e0 = checkForPlus();
+	 //1+2*3
+	while(isKind(DOTDOT)) {
+		Token op = consume();
+		Exp e1 = checkForPlus();
+		if(isKind(DOTDOT)) {
+				/*
+				 * Exp tmp =e0; e0 = e1;
+				 */
+			     e0 = new ExpBinary(first, e0,DOTDOT, Expressions.makeBinary(e1,consume().kind,andExp()));
+		}
+		else {
+		e0 = new ExpBinary(first, e0, op, e1);}
+	}
+	return e0;	
+}
+
+	/*
+	 * protected boolean isOp(Kind kind) { kind.toString() if() return t.kind ==
+	 * kind; }
+	 */
 
 	private Exp checkForPlus() throws Exception {
 		Token first = t;
-		Exp e0 = checkForPower();
+		Exp e0 = checkForTimes();
 		 //1+2*3
 		while(isKind(OP_PLUS) || isKind(OP_MINUS)) {
 			Token op = consume();
-			Exp e1 = checkForPower();
+			Exp e1 = checkForTimes();
 			e0 = new ExpBinary(first, e0, op, e1);
 		}
 		return e0;	
 }
 	
 
-	private Exp checkForPower() throws Exception {
+	private Exp checkForTimes() throws Exception {
 		Token first = t;
-		Exp e0 = term();
-		while(t.kind == OP_TIMES) {
+		Exp e0 = checkForPow();
+		while(isKind(OP_TIMES) || isKind(OP_DIV) || isKind(OP_DIVDIV) || isKind(OP_MOD) ) {
 			Token op = consume();
-			Exp e1 = term();
+			Exp e1 = checkForPow();
 			e0 = new ExpBinary(first, e0, op, e1);
 		}
 		return e0;	
-}	
+}
+	
+	private Exp checkForPow() throws Exception {
+		Token first = t;
+		Exp e0 = term();
+		 //1+2*3
+		while(isKind(OP_POW)) {
+			Token op = consume();
+			Exp e1 = term();
+			if(isKind(OP_POW)) {
+					/*
+					 * Exp tmp =e0; e0 = e1;
+					 */
+				     e0 = new ExpBinary(first, e0,OP_POW, Expressions.makeBinary(e1,consume().kind,andExp()));
+			}
+			else {
+			e0 = new ExpBinary(first, e0, op, e1);}
+		}
+		return e0;	
+	}
 
+	private FuncBody funbody() throws Exception{  //function (parList) block end
+		consume();
+		Token first = t;
+		List<Name> nameList = new ArrayList<>();
+		if(isKind(LPAREN)) {
+			consume();
+			while(isKind(NAME)) {
+				Name inName = new Name(t,t.text);
+				consume();
+				nameList.add(inName);
+				if(isKind(COMMA)) {
+					consume();
+				}else {
+					error(t.kind);
+				}
+			}
+			if(isKind(DOTDOTDOT)) {
+				hasVarArgs = true;
+				Name inName = new Name(t,t.text);
+				nameList.add(inName);
+				ParList parList = new ParList(t,nameList,hasVarArgs);
+				setParList(parList);
+				consume();
+			}
+			else {
+				error(t.kind);
+			}
+		}else {
+			error(t.kind);
+		}
+		
+		if(isKind(RPAREN)) {
+			consume();
+			if(isKind(KW_end)) {
+				FuncBody funcb = new FuncBody(first,getParList(),block());
+				setFuncb(funcb);
+			}else {
+				error(t.kind);
+			}
+		}else {
+			error(t.kind);
+		}
+		
+		
+		return getFuncb();
+		
+	}
+	
 	 private Exp term() throws Exception{
 		 switch(t.kind) {   // 1+2*3
 			
 			case NAME:
 			{
 				ExpName en = new ExpName(t);
+				Name inName = new Name(t,t.text);
 				consume();
+				if(isKind(ASSIGN)) {
+					fieldNameGen(inName);
+					Nameflag = true;
+				}
 		    	return en;
 			}
 			case STRINGLIT:
 			{
 				ExpString es = new ExpString(t);
+				Name inName = new Name(t,t.text);
 				consume();
+				if(isKind(ASSIGN)) {
+					fieldNameGen(inName);
+					Nameflag = true;
+				}
 				return es;	
 			}
 			case INTLIT:
 			{
 				ExpInt ei = new ExpInt(t);
+				Name inName = new Name(t,t.text);
 				consume();
+				if(isKind(ASSIGN)) {
+					fieldNameGen(inName);
+					Nameflag = true;
+				}
 				return ei;
 			}	
 			case KW_true:
 			{
 				ExpTrue et = new ExpTrue(t);
+				Name inName = new Name(t,t.text);
 				consume();
+				if(isKind(ASSIGN)) {
+					fieldNameGen(inName);
+					Nameflag = true;
+				}
 				return et;
 			}
 			case KW_false:
 			{
 				ExpFalse ef = new ExpFalse(t);
+				Name inName = new Name(t,t.text);
 				consume();
+				if(isKind(ASSIGN)) {
+					fieldNameGen(inName);
+					Nameflag = true;
+				}
+				return ef;
+			}
+			case KW_nil:
+			{
+				ExpNil ef = new ExpNil(t);
+				Name inName = new Name(t,t.text);
+				consume();
+				if(isKind(ASSIGN)) {
+					fieldNameGen(inName);
+					Nameflag = true;
+				}
 				return ef;
 			}
 			case LPAREN:
@@ -154,31 +424,61 @@ return e0;
 			case RPAREN:
 			{
 				consume();
-				return term();
+				return exp();
+			}
+			case DOTDOTDOT:
+			{
+				e10 = new ExpVarArgs(t);
+				break;
+			}
+			case KW_function:
+			{
+				e10 = new ExpFunction(t, funbody());
+				break;
 			}
 			case OP_HASH:
 			{
-				e10 = new ExpUnary(t,OP_HASH,exp());
+				e10 = new ExpUnary(consume(),OP_HASH,term());
+				break;
 			}
 			case OP_MINUS:
-			{
-				e10 = new ExpUnary(t,OP_MINUS,exp());
+			{   
+				e10 = new ExpUnary(consume(),OP_MINUS,term());
+				break;
 			}
 			case KW_not:
 			{
-				e10 = new ExpUnary(t,KW_not,exp());
+				e10 = new ExpUnary(consume(),KW_not,term());
+				break;
 			}
 			case BIT_XOR:
 			{
-				e10 = new ExpUnary(t,BIT_XOR,exp());
+				e10 = new ExpUnary(consume(),BIT_XOR,term());
+				break;
 			}
 			default:
-				consume();
-				return e10;
+				error(t, t.text);
+				break;
 			}
-		
+		 return e10;
 	 }
 
+	 public ParList getParList() {
+		return p;
+	 }
+	 
+	 public  void setParList(ParList p) {
+		 this.p =p;
+	 }
+	 
+	 public FuncBody getFuncb() {
+			return functionbody;
+		 }
+		 
+		 public  void setFuncb(FuncBody functionbody) {
+			 this.functionbody =functionbody;
+		 }
+	 
 	private Block block() {
 		return new Block(null);  //this is OK for Assignment 2
 	}
