@@ -76,7 +76,12 @@ public class FunctionCall extends Exp {
 
 	@Override
 	public Object visit(ASTVisitor v, Object arg) throws Exception {
-		return v.visitFunctionCall(this, arg);
+		// TODO Auto-generated method stub
+		return null;
 	}
 
+	/*
+	 * @Override public Object visit(ASTVisitor v, Object arg) throws Exception {
+	 * return v.visitFunctionCall(this, arg); }
+	 */
 }

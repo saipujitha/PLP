@@ -17,6 +17,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import cop5556fa19.AST.Block;
+import cop5556fa19.AST.Chunk;
 import cop5556fa19.AST.Exp;
 import cop5556fa19.AST.ExpBinary;
 import cop5556fa19.AST.ExpFalse;
@@ -37,12 +38,14 @@ import cop5556fa19.AST.FieldNameKey;
 import cop5556fa19.AST.FuncBody;
 import cop5556fa19.AST.Name;
 import cop5556fa19.AST.ParList;
+import cop5556fa19.AST.Stat;
 import cop5556fa19.Token.Kind;
 import static cop5556fa19.Token.Kind.*;
 
 public class ExpressionParser {
 	
 	@SuppressWarnings("serial")
+	public
 	class SyntaxException extends Exception {
 		Token t;
 		
@@ -66,7 +69,7 @@ public class ExpressionParser {
 	private ParList p;
 	private FuncBody functionbody;
     List<Field> fieldList = new ArrayList<>();
-    
+    List<Stat> statList = new ArrayList<>();
 	Exp exp() throws Exception {
 		Token first = t;
 		
@@ -480,7 +483,8 @@ private Exp checkForDotdot() throws Exception {
 		 }
 	 
 	private Block block() {
-		return new Block(null);  //this is OK for Assignment 2
+		
+		return new Block(t,statList);  //this is OK for Assignment 2
 	}
 
 
@@ -550,6 +554,11 @@ private Exp checkForDotdot() throws Exception {
 	void error(Token t, String m) throws SyntaxException {
 		String message = m + " at " + t.line + ":" + t.pos;
 		throw new SyntaxException(t, message);
+	}
+
+	public Chunk parse() {
+		// TODO Auto-generated method stub
+		return null;
 	}
 	
 

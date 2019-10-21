@@ -2,10 +2,11 @@ package cop5556fa19.AST;
 
 import cop5556fa19.Token;
 
-public abstract class Field extends ASTNode {
+public abstract class Var extends Exp {
 
-	public Field(Token firstToken) {
+	public Var(Token firstToken) {
 		super(firstToken);
 	}
+
 
 }
