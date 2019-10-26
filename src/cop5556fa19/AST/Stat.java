@@ -7,7 +7,4 @@ public abstract class Stat extends ASTNode {
 	public Stat(Token firstToken) {
 		super(firstToken);
 	}
-
-
-
 }

@@ -39,7 +39,7 @@ import cop5556fa19.AST.Field;
 import cop5556fa19.AST.FieldExpKey;
 import cop5556fa19.AST.FieldImplicitKey;
 import cop5556fa19.AST.ParList;
-import cop5556fa19.ExpressionParser.SyntaxException;
+import cop5556fa19.Parser.SyntaxException;
 
 class ExpressionParserTest {
 
@@ -59,7 +59,7 @@ class ExpressionParserTest {
 		show("parser input:\n" + input); // Display the input
 		Reader r = new StringReader(input);
 		Scanner scanner = new Scanner(r); // Create a Scanner and initialize it
-		ExpressionParser parser = new ExpressionParser(scanner);  // Create a parser
+		Parser parser = new Parser(scanner);  // Create a parser
 		Exp e = parser.exp(); // Parse and expression
 		show("e=" + e);  //Show the resulting AST
 		return e;
@@ -205,6 +205,45 @@ class ExpressionParserTest {
 	}
 	
 	@Test
+	void testfailed0() throws Exception {
+		String input = "123 + (456 - 789) - 101112";
+		Exp e = parseAndShow(input);
+		Exp expected = Expressions.makeBinary(Expressions.makeBinary(Expressions.makeInt(123),OP_PLUS,Expressions.makeBinary(Expressions.makeInt(456),OP_MINUS,Expressions.makeInt(789))),OP_MINUS,Expressions.makeInt(101112));
+		show("expected=" + expected);
+		assertEquals(expected,e);
+	}		
+	
+	@Test
+	void testfailed1() throws Exception {
+		String input = "1 ^ (4 + 2) * 3";
+		Exp e = parseAndShow(input);
+		Exp expected = Expressions.makeBinary(Expressions.makeBinary(Expressions.makeInt(1),OP_POW,Expressions.makeBinary(Expressions.makeInt(4),OP_PLUS,Expressions.makeInt(2))),OP_TIMES,Expressions.makeInt(3));
+		show("expected=" + expected);
+		assertEquals(expected,e);
+		
+	}
+	
+	@Test
+	void testfailed2() throws Exception {
+		String input = "(1 <= 2) == (4 >= 3)";
+		Exp e = parseAndShow(input);
+		Exp expected = Expressions.makeBinary(Expressions.makeBinary(Expressions.makeInt(1),REL_LE,Expressions.makeInt(2)),REL_EQEQ,Expressions.makeBinary(Expressions.makeInt(4),REL_GE,Expressions.makeInt(3)));
+		show("expected=" + expected);
+		assertEquals(expected,e);
+		
+	}
+	
+	@Test
+	void testfailed3() throws Exception {
+		String input = "(1 * 2) / (3 % 4) // 5 ";
+		Exp e = parseAndShow(input);
+		Exp expected = Expressions.makeBinary(Expressions.makeBinary(Expressions.makeBinary(Expressions.makeInt(1),OP_TIMES,Expressions.makeInt(2)),OP_DIV,Expressions.makeBinary(Expressions.makeInt(3),OP_MOD,Expressions.makeInt(4))),OP_DIVDIV,Expressions.makeInt(5));
+		show("expected=" + expected);
+		assertEquals(expected,e);
+		
+	}
+	
+	@Test
 	void testoperPowAssoc() throws Exception {
 		String input = "2^3^4";
 		Exp e = parseAndShow(input);
@@ -213,10 +252,19 @@ class ExpressionParserTest {
 		assertEquals(expected,e);
 		
 	}
+	//function (aa, b) end >> function(test, l, ...) end
 	
 	@Test
 	void testFunc() throws Exception {
 		String input = "function(...)end";
+		Exp e = parseAndShow(input);
+	//	show("expected=" + expected);
+		assertEquals(ExpFunction.class, e.getClass());
+	}
+	
+	@Test
+	void testfailed4() throws Exception {
+		String input = "function (aa, b) end >> function(test, l, ...) end";
 		Exp e = parseAndShow(input);
 	//	show("expected=" + expected);
 		assertEquals(ExpFunction.class, e.getClass());
@@ -262,6 +310,14 @@ class ExpressionParserTest {
 	//	show("expected=" + expected);
 		assertEquals(ExpTable.class, e.getClass());
 	}
+	
+	@Test
+		void testTableImp1() throws Exception {
+			String input = "{}";
+			Exp e = parseAndShow(input);
+		//	show("expected=" + expected);
+			assertEquals(ExpTable.class, e.getClass());
+		}
 	
 	@Test
 	void testTableErr() throws Exception {

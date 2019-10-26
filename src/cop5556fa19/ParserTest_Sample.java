@@ -11,8 +11,8 @@ import java.util.List;
 
 import org.junit.jupiter.api.Test;
 
-import cop5556fa19.ExpressionParser;
-import cop5556fa19.ExpressionParser.SyntaxException;
+import cop5556fa19.Parser;
+import cop5556fa19.Parser.SyntaxException;
 import cop5556fa19.AST.ASTNode;
 import cop5556fa19.AST.Block;
 import cop5556fa19.AST.Chunk;
@@ -61,7 +61,7 @@ class ParserTest_Sample {
 		show("parser input:\n" + input); // Display the input
 		Reader r = new StringReader(input);
 		Scanner scanner = new Scanner(r); // Create a Scanner and initialize it
-		ExpressionParser parser = new ExpressionParser(scanner);
+		Parser parser = new Parser(scanner);
 		Exp e = parser.exp();
 		show("e=" + e);
 		return e;
@@ -73,8 +73,8 @@ class ParserTest_Sample {
 		show("parser input:\n" + input); // Display the input
 		Reader r = new StringReader(input);
 		Scanner scanner = new Scanner(r); // Create a Scanner and initialize it
-		ExpressionParser parser = new ExpressionParser(scanner);
-		Method method = ExpressionParser.class.getDeclaredMethod("block");
+		Parser parser = new Parser(scanner);
+		Method method = Parser.class.getDeclaredMethod("block");
 		method.setAccessible(true);
 		Block b = (Block) method.invoke(parser);
 		show("b=" + b);
@@ -88,7 +88,7 @@ class ParserTest_Sample {
 		show("parser input:\n" + input); // Display the input
 		Reader r = new StringReader(input);
 		Scanner scanner = new Scanner(r); // Create a Scanner and initialize it
-		ExpressionParser parser = new ExpressionParser(scanner);
+		Parser parser = new Parser(scanner);
 		Chunk c = parser.parse();
 		show("c="+c);
 		return c;
@@ -110,6 +110,45 @@ class ParserTest_Sample {
 		Chunk expected = new Chunk(b.firstToken,b);
 		assertEquals(expected,n);
 	}
+	
+	@Test
+	void testStatLabel() throws Exception{
+		//StatLabel s1 = Expressions.makeStatLabel("mylabel");
+		String input = "::MyLabel::";
+		Block bl = parseBlockAndShow(input);
+		StatLabel s1 = Expressions.makeStatLabel("MyLabel");
+		Block expected = Expressions.makeBlock(s1);
+		assertEquals(expected,bl);
+	}
+	
+	@Test
+	void testStatBreak() throws Exception{
+		String input = "break";
+		Block bl = parseBlockAndShow(input);
+		StatBreak statBreak = Expressions.makeStatBreak();
+		Block expected = Expressions.makeBlock(statBreak);
+		assertEquals(expected,bl);
+	}
+	
+	@Test
+	void testStatDo() throws Exception{
+		String input = "do ::Name:: end";
+		Block bl = parseBlockAndShow(input);
+		StatLabel s1 = Expressions.makeStatLabel("Name");
+		StatDo statdo = Expressions.makeStatDo(s1);
+		Block expected = Expressions.makeBlock(statdo);
+		assertEquals(expected,bl);
+	}
+	
+	@Test
+	void testStatGoto() throws Exception{
+		String input = "goto MyLabel";
+		Block bl = parseBlockAndShow(input);
+		StatGoto statBreak = Expressions.makeStatGoto("MyLabel");
+		Block expected = Expressions.makeBlock(statBreak);
+		assertEquals(expected,bl);
+	}
+	
 	
 	@Test
 	void testAssign1() throws Exception {
@@ -135,7 +174,7 @@ class ParserTest_Sample {
 	}
 	
 
-	@Test
+   // @Test
 	void testMultiAssign1() throws Exception {
 		String input = "a,c=8,9";
 		Block b = parseBlockAndShow(input);		
@@ -202,7 +241,6 @@ class ParserTest_Sample {
 		assertEquals(expected,bl);
 	}
 	
-
 	
 	@Test
 	void testmultistatements6() throws Exception {
