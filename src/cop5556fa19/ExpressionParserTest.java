@@ -267,6 +267,38 @@ class ExpressionParserTest {
 		String input = "function (aa, b) end >> function(test, l, ...) end";
 		Exp e = parseAndShow(input);
 	//	show("expected=" + expected);
+		assertEquals(ExpBinary.class, e.getClass());
+	}
+	//function (aa, b) end >> function(test, l, ...) end & function(...) end
+	
+	@Test
+	void testfailed5() throws Exception {
+		String input = "function (aa, b) end >> function(test, l, ...) end & function(...) end";
+		Exp e = parseAndShow(input);
+	//	show("expected=" + expected);
+		assertEquals(ExpBinary.class, e.getClass());
+	}
+	
+	@Test
+	void testfailed6() throws Exception {
+		String input = "function(test, l, ...) end & function(...) end";
+		Exp e = parseAndShow(input);
+	//	show("expected=" + expected);
+		assertEquals(ExpBinary.class, e.getClass());
+	}
+	
+	@Test
+	void testfailed7() throws Exception {
+		String input = "function () end";
+		Exp e = parseAndShow(input);
+	//	show("expected=" + expected);
+		assertEquals(ExpFunction.class, e.getClass());
+	}
+	@Test
+	void testfailed8() throws Exception {
+		String input = "function (a,b) end";
+		Exp e = parseAndShow(input);
+	//	show("expected=" + expected);
 		assertEquals(ExpFunction.class, e.getClass());
 	}
 	
@@ -277,6 +309,14 @@ class ExpressionParserTest {
 		assertThrows(SyntaxException.class, () -> {
 			Exp e = parseAndShow(input);
 			});	
+	}
+	
+	@Test
+	void testfailed9() throws Exception {
+		String input = "function (xy,zy, ...) end";
+		Exp e = parseAndShow(input);
+	//	show("expected=" + expected);
+		assertEquals(ExpFunction.class, e.getClass());
 	}
 	
 	@Test

@@ -92,8 +92,6 @@ public class Parser {
     
     public Chunk parse() throws Exception {
 		Token first = t;
-	//	List<Stat> stat = new ArrayList<>();
-	//	Block block = new Block(t,statList);
 		Chunk chunk = new Chunk(first,block());
 		return chunk;
 	}
@@ -128,7 +126,7 @@ public class Parser {
 		{
 			return Expressions.makeBlock();
 		}
-		while(!isKind(EOF) ) { //&& !isKind(KW_end) && !isKind(KW_until) && !isKind(KW_else) && !isKind(KW_elseif)
+		while(!isKind(EOF) ) { 
 			statList.add(andBlock());
 			check = t;
 			if(isKind(SEMI)) {
@@ -369,7 +367,7 @@ public class Parser {
 			/*
 			 * if(t.kind == Kind.LPAREN) { e10 = new ExpFunction(first, funbody()); } else
 			 */ 
-    	if(isKind(NAME)){
+    	 if(isKind(NAME)){
 			          while(isKind(NAME)) {
 					ExpName en = new ExpName(t);
 					consume();
@@ -391,7 +389,7 @@ public class Parser {
     	return sFun;
     	}
     	
-    	if(t.kind == Kind.KW_local){
+    	else if(t.kind == Kind.KW_local){
     		List<ExpName> nameList = new ArrayList<>();
     		List<Exp> expList = new ArrayList<>();
     		consume();
@@ -425,7 +423,7 @@ public class Parser {
     		}
     	}
     	
-    	if(t.kind == Kind.COLONCOLON) 
+    	else if(t.kind == Kind.COLONCOLON) 
 		{
 			consume();
 			if(t.kind == Kind.NAME) {
@@ -437,13 +435,12 @@ public class Parser {
 			return sL;
 			}}
 		}
-		if(t.kind == Kind.KW_break)
-		{
+    	else if(t.kind == Kind.KW_break){
 			 StatBreak sB = new StatBreak(t);
 			 consume();
 			 return sB;
 		}
-		if(t.kind == Kind.KW_do)
+    	else if(t.kind == Kind.KW_do)
 		{
 			consume();
 			/*
@@ -456,7 +453,7 @@ public class Parser {
 			return sD;
 			}
 		}
-		if(t.kind == Kind.KW_goto)
+    	else if(t.kind == Kind.KW_goto)
 		{
 			 consume();
 			 if(t.kind == Kind.NAME) {
@@ -466,17 +463,15 @@ public class Parser {
 				 return sG;
 			 }
 		}
-		if(t.kind == Kind.KW_while) 
+    	else if(t.kind == Kind.KW_while) 
 		{
 			consume();
 			e10 = exp();
-			consume();
 			if(t.kind == Kind.KW_do)
 			{
 				consume();
 				
 				block = insideBlock();
-				consume();
 				if(check.kind == Kind.KW_end) {
 					StatWhile sW = new StatWhile(first,e10,block);
 					consume();
@@ -484,10 +479,9 @@ public class Parser {
 				}
 			}
 		}
-		if(t.kind == Kind.KW_repeat) {
+    	else if(t.kind == Kind.KW_repeat) {
 			consume();
 			block = insideBlock();
-			consume();
 			if(check.kind == Kind.KW_until) {
 				consume();
 				e10 = exp();
@@ -500,12 +494,12 @@ public class Parser {
 			}
 		}
 		
-		if(t.kind == Kind.KW_if) {
+    	else if(t.kind == Kind.KW_if) {
 			consume();
 			e10 = exp();
 			List<Exp> expList = new ArrayList<>();
 			List<Block> blockList = new ArrayList<>();
-			consume();
+			expList.add(e10);
 			if(t.kind == Kind.KW_then){
 				consume();
 				block = insideBlock();
@@ -513,7 +507,6 @@ public class Parser {
 					while(check.kind == Kind.KW_elseif) {
 						consume();
 						expList.add(exp());
-						consume();
 						if(t.kind == Kind.KW_then){
 							consume();
 							block = insideBlock();
@@ -533,21 +526,19 @@ public class Parser {
 						return sI ;
 					}
 		}}
-		if(t.kind == Kind.KW_for){
-			consume();
+    	else if(t.kind == Kind.KW_for){
 			List<ExpName> nameList = new ArrayList<>();
 			List<Exp> expList   = new ArrayList<>();
-			//List<Block> blockList = new ArrayList<>();
+			consume();
 				while(isKind(NAME)) {
-					//Name inName = new Name(t,t.text);
-					ExpName en = new ExpName(t);
+					ExpName inName = new ExpName(t.text);
 					consume();
-					nameList.add(en);
+					nameList.add(inName);
 					if(isKind(COMMA)) {
 						consume();
 					}
 		}
-		if(nameList.size() > 0){
+		if(nameList.size() > 1){
 		if(t.kind == Kind.KW_in) {
 			while(t.kind != Kind.KW_do){
 			consume();
@@ -563,16 +554,14 @@ public class Parser {
 		return sFe;
 		}else {
 		if(t.kind == Kind.ASSIGN) {
-			expList.add( exp());
 			consume();
+			expList.add( exp());
 		if(t.kind == Kind.COMMA){
 			consume();
 			expList.add( exp());
-			consume();
-			if(t.kind == Kind.COMMA) {
+			while(t.kind == Kind.COMMA) {
 		    consume();
 			expList.add( exp());
-			consume();
 			}
 		if(t.kind == Kind.KW_do){
 			consume();
@@ -583,12 +572,12 @@ public class Parser {
 				return sF;
 			}
 		}}}}}
-		if(isKind(KW_return)) {
+    	else if(isKind(KW_return)) {
 			RetStat eS = returnStat();
 			consume();
 			return eS;
 		}
-		if(isKind(LPAREN)) {
+    	else if(isKind(LPAREN)) {
     		List<Exp>expList = new ArrayList<>();
     		List<Exp>varList = makeVarLparen();
     		if(isKind(ASSIGN)){
@@ -602,17 +591,22 @@ public class Parser {
     	StatAssign sA = new StatAssign(first,varList,expList);
     	return sA;}
     	
-    	if(isKind(NAME))
+    	else if(isKind(NAME))
     	{
     		List<Exp>expList = new ArrayList<>();
         	List<Exp> nameList = new ArrayList<>();
     		nameList = makeVarName();
     		if(isKind(ASSIGN)){
 			consume();
-			expList = makeVarName();
+			expList.add(exp());
 		}
+    		/*else if(nameList.size() ==1 ) {
+			ExpFunctionCall expfunc = (ExpFunctionCall) nameList.get(0);
+			
+		}*/
 	StatAssign sA = new StatAssign(first,nameList,expList);
 	return sA;}
+    	
 		return stat;
  }
 	
@@ -863,19 +857,26 @@ private Exp checkForDotdot() throws Exception {
 		//consume();
 		Token first = t;
 		List<Name> nameList = new ArrayList<>();
+		List<Stat> statList = new ArrayList<Stat>();
 		if(isKind(LPAREN)) {
 			consume();
-			while(isKind(NAME)) {
+			if(isKind(NAME)) {while(isKind(NAME)) {
 				Name inName = new Name(t,t.text);
 				consume();
 				nameList.add(inName);
 				if(isKind(COMMA)) {
 					consume();
-				}else {
-					error(t.kind);
+					if(isKind(DOTDOTDOT)) {
+						hasVarArgs = true;
+						Name inName1 = new Name(t,t.text);
+						nameList.add(inName1);
+						ParList parList = new ParList(t,nameList,hasVarArgs);
+						setParList(parList);
+						consume();
+					}
 				}
-			}
-			if(isKind(DOTDOTDOT)) {
+			}}
+			else if(isKind(DOTDOTDOT)) {
 				hasVarArgs = true;
 				Name inName = new Name(t,t.text);
 				nameList.add(inName);
@@ -883,8 +884,10 @@ private Exp checkForDotdot() throws Exception {
 				setParList(parList);
 				consume();
 			}
-			else {
-				error(t.kind);
+			
+			if(hasVarArgs == false) {
+				ParList parList = new ParList(t,nameList,false);
+				setParList(parList);
 			}
 		}else {
 			error(t.kind);
@@ -892,10 +895,10 @@ private Exp checkForDotdot() throws Exception {
 		
 		if(isKind(RPAREN)) {
 			consume();
+			statList.add(andBlock());
 			if(isKind(KW_end)) {
-				List<Stat> stats1 = new ArrayList<Stat>();
-				stats1.add(andBlock());
-				FuncBody funcb = new FuncBody(first,getParList(),new Block(first, stats1 ));
+				consume();
+				FuncBody funcb = new FuncBody(first,getParList(),new Block(first,statList));
 				setFuncb(funcb);
 			}else {
 				error(t.kind);
@@ -903,7 +906,6 @@ private Exp checkForDotdot() throws Exception {
 		}else {
 			error(t.kind);
 		}
-		
 		
 		return getFuncb();
 		
@@ -999,7 +1001,14 @@ private Exp checkForDotdot() throws Exception {
 			}
 			case KW_function:
 			{
+				consume();
 				e10 = new ExpFunction(t, funbody());
+				while(t.kind != EOF) {
+					Kind op = t.kind;
+					consume();
+					Exp e1 = exp();
+					e10 = new ExpBinary(t, e10, op, e1);
+				}
 				break;
 			}
 			case OP_HASH:

@@ -8,13 +8,19 @@ public class StatAssign extends Stat {
 	
 	List<Exp>  varList;
 	List<Exp>  expList;
-	
+	List<Var>  nameList;
 	
 
 	public StatAssign(Token firstToken, List<Exp> varList, List<Exp> expList) {
 		super(firstToken);
 		this.varList = varList;
 		this.expList = expList;
+	}
+
+	public StatAssign( List<Var> nameList, List<Exp> expList2, Token first) {
+		super(first);
+		this.nameList = nameList;
+		this.expList = expList2;
 	}
 
 	@Override

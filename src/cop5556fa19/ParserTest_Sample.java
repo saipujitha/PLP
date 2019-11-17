@@ -32,13 +32,22 @@ import cop5556fa19.AST.Expressions;
 import cop5556fa19.AST.Field;
 import cop5556fa19.AST.FieldExpKey;
 import cop5556fa19.AST.FieldImplicitKey;
+import cop5556fa19.AST.FuncBody;
+import cop5556fa19.AST.FuncName;
+import cop5556fa19.AST.Name;
 import cop5556fa19.AST.ParList;
+import cop5556fa19.AST.RetStat;
 import cop5556fa19.AST.Stat;
 import cop5556fa19.AST.StatAssign;
 import cop5556fa19.AST.StatBreak;
 import cop5556fa19.AST.StatDo;
+import cop5556fa19.AST.StatFor;
 import cop5556fa19.AST.StatGoto;
+import cop5556fa19.AST.StatIf;
 import cop5556fa19.AST.StatLabel;
+import cop5556fa19.AST.StatLocalFunc;
+import cop5556fa19.AST.StatRepeat;
+import cop5556fa19.AST.StatWhile;
 import cop5556fa19.Scanner;
 import cop5556fa19.Token;
 
@@ -174,7 +183,7 @@ class ParserTest_Sample {
 	}
 	
 
-   // @Test
+    //@Test
 	void testMultiAssign1() throws Exception {
 		String input = "a,c=8,9";
 		Block b = parseBlockAndShow(input);		
@@ -192,7 +201,7 @@ class ParserTest_Sample {
 
 	
 
-	@Test
+	//@Test
 	void testMultiAssign3() throws Exception {
 		String input = "a,c=8,f(x)";
 		Block b = parseBlockAndShow(input);		
@@ -226,7 +235,7 @@ class ParserTest_Sample {
 		assertEquals(expected,bl);
 	}
 	
-	@Test
+	//@Test
 	void testAssignTableToVar() throws Exception {
 		String input = "x = g.a.b";
 		Block bl = parseBlockAndShow(input);
@@ -240,9 +249,132 @@ class ParserTest_Sample {
 		Block expected = Expressions.makeBlock(s);
 		assertEquals(expected,bl);
 	}
-	
+	@Test
+	void testStatAssign() throws Exception{
+		String input = "a=b<<c";
+		Token t = new Token(NAME, "a", 1, 1);
+		Token t1 = new Token(NAME, "b", 1, 1);
+		Block bl = parseBlockAndShow(input);
+		Exp v = Expressions.makeExpName("a");
+		Exp y = Expressions.makeExpName("b");
+		Exp c = Expressions.makeExpName("c");
+		ExpBinary e = new ExpBinary(t1,y,BIT_SHIFTL,c);
+		Stat s = Expressions.makeStatAssign(Expressions.makeExpList(v), Expressions.makeExpList(e));
+		Block expected = Expressions.makeBlock(s);
+		assertEquals(expected,bl);
+	}
+
+	@Test
+	void testStatwhile() throws Exception{
+		String input = "while x == 1 do a=b end";
+		List<Exp> expList   = new ArrayList<>();
+		Token t = new Token(KW_while, "while", 1, 1);
+		Block bl = parseBlockAndShow(input);
+		ExpName v = Expressions.makeExpName("x");
+		Exp y = Expressions.makeExpInt(1);
+		Token t1 = new Token(NAME, "x", 1, 1);
+		ExpBinary e = new ExpBinary(t1,v,REL_EQEQ,y);
+		expList.add(y);
+		Stat s = Expressions.makeStatAssign(Expressions.makeExpList(Expressions.makeExpName("a")), Expressions.makeExpList(Expressions.makeExpName("b")));
+		Block blc = Expressions.makeBlock(s);
+		StatWhile sw = new StatWhile(t,e, blc);
+		Block exp = Expressions.makeBlock(sw);
+		assertEquals(exp,bl);
+	}
 	
 	@Test
+	void testStatFor() throws Exception{
+		String input = "for i = 0 , i < 10 , i + 1 do a = b end";
+		List<Exp> expList   = new ArrayList<>();
+		Token t = new Token(KW_for, "for", 1, 1);
+		Block bl = parseBlockAndShow(input);
+		ExpName v = Expressions.makeExpName("i");
+		Exp y = Expressions.makeExpInt(0);
+		expList.add(y);
+		Token t1 = new Token(NAME, "i", 1, 1);
+		Exp c = Expressions.makeExpInt(10);
+		ExpBinary e = new ExpBinary(t1,v,REL_LT,c);
+		expList.add(e);
+		Exp d = Expressions.makeExpInt(1);
+		ExpBinary e1 = new ExpBinary(t1,v,OP_PLUS,d);
+		expList.add(e1);
+		Stat s = Expressions.makeStatAssign(Expressions.makeExpList(Expressions.makeExpName("a")), Expressions.makeExpList(Expressions.makeExpName("b")));
+		Block blc = Expressions.makeBlock(s);
+		StatFor sf = new StatFor(t, v,expList.get(0),expList.get(1),expList.get(2), blc);
+		Block exp = Expressions.makeBlock(sf);
+		assertEquals(exp,bl);
+	}
+	
+	@Test
+	void testStatRepeat() throws Exception{
+		String input = "repeat x=x*y until a==nil;";
+		Token t = new Token(KW_repeat, "repeat", 1, 1);
+		Token t1 = new Token(NAME, "x", 1, 1);
+		Block bl = parseBlockAndShow(input);
+		Exp v = Expressions.makeExpName("x");
+		Exp y = Expressions.makeExpName("y");
+		ExpBinary e = new ExpBinary(t1,v,OP_TIMES,y);
+		Stat s = Expressions.makeStatAssign(Expressions.makeExpList(v), Expressions.makeExpList(e));
+		Block blc = Expressions.makeBlock(s);
+		Exp a = Expressions.makeExpName("a");
+		ExpNil b = new ExpNil(new Token(NAME, "a", 1, 1));
+		ExpBinary e1 = new ExpBinary(new Token(NAME, "a", 1, 1),a,REL_EQEQ,b);
+		StatRepeat rep = new StatRepeat(t,blc,e1);
+		Block expected = Expressions.makeBlock(rep);
+		assertEquals(expected,bl);
+	}
+	
+	@Test //local function x(c) a = b end
+	void testAssignLocal() throws Exception {
+		Token t = new Token(KW_local, "local", 1, 1);
+		String input = "local function x(c) a = b end";
+		Block bl = parseBlockAndShow(input);
+		ExpName n = Expressions.makeExpName("x");
+		FuncName fn = new FuncName(t, n);
+		Exp v = Expressions.makeExpName("a");
+		Exp e = Expressions.makeExpName("b");
+		Stat s = Expressions.makeStatAssign(Expressions.makeExpList(v), Expressions.makeExpList(e));
+		Block blc = Expressions.makeBlock(s);
+		Token t1 = new Token(NAME, "c", 1, 1);
+		Name inName = new Name(t1,"c");
+		List<Name> nameList = new ArrayList<>();
+		nameList.add(inName);
+		ParList parList = new ParList(t,nameList,false);
+		FuncBody fb = new FuncBody(t, parList, blc);
+		StatLocalFunc slf = new StatLocalFunc(t,fn,fb);
+		Block expected = Expressions.makeBlock(slf);
+		assertEquals(expected,bl);
+	}
+
+	@Test //if x == 123 then a = b elseif x == 321 then a = c end
+	void testFunc() throws Exception {
+		Token t = new Token(KW_if, "if", 1, 1);
+		List<Exp> expList   = new ArrayList<>();
+		List<Block> blockList   = new ArrayList<>();
+		String input = "if x == 123 then a = b elseif x == 321 then a = c end";
+		Block bl = parseBlockAndShow(input);
+		ExpName n = Expressions.makeExpName("x");
+		Exp m = Expressions.makeExpInt(123);
+		ExpBinary e1 = new ExpBinary(new Token(NAME, "x", 1, 1),n,REL_EQEQ,m);
+		expList.add(e1);
+		Exp v = Expressions.makeExpName("a");
+		Exp e = Expressions.makeExpName("b");
+		Stat s = Expressions.makeStatAssign(Expressions.makeExpList(v), Expressions.makeExpList(e));
+		Block blc = Expressions.makeBlock(s);
+		blockList.add(blc);
+		Exp a = Expressions.makeExpInt(321);
+		ExpBinary e2 = new ExpBinary(new Token(NAME, "x", 1, 1),n,REL_EQEQ,a);
+		expList.add(e2);
+		Stat s1 = Expressions.makeStatAssign(Expressions.makeExpList(v), Expressions.makeExpList(Expressions.makeExpName("c")));
+		Block blc1 = Expressions.makeBlock(s1);
+		blockList.add(blc1);
+		StatIf slf = new StatIf(t,expList,blockList);
+		Block expected = Expressions.makeBlock(slf);
+		assertEquals(expected,bl);
+	}
+	
+	
+	//@Test
 	void testmultistatements6() throws Exception {
 		String input = "x = g.a.b ; ::mylabel:: do  y = 2 goto mylabel f=a(0,200) end break"; //same as testmultistatements0 except ;
 		ASTNode c = parseAndShow(input);
