@@ -6,6 +6,7 @@ import cop5556fa19.Token;
 
 public class RetStat extends Stat {
 
+	public final 
 	List<Exp> el;
 
 	public RetStat(Token firstToken, List<Exp> el) {
@@ -13,9 +14,13 @@ public class RetStat extends Stat {
 		this.el = el;
 	}
 
+	public List<Exp> getValue(){
+		return el; 
+	}
+	
 	@Override
 	public String toString() {
-		return "RetStat [el=" + el + ", firstToken=" + firstToken + "]";
+		return "RetStat [el=" + el +  "]";
 	}
 
 	@Override

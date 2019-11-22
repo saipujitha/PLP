@@ -1,7 +1,6 @@
 package cop5556fa19.AST;
 
-//import cop5556fa19.Token.Kind.SEMI;
-import cop5556fa19.Token.Kind.*;
+import static cop5556fa19.Token.Kind.*;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -71,9 +70,9 @@ public class Expressions {
 		return elist;
 	}
 	
-	public static ExpName makeExpName(String name) {
-		Token first = new Token(Kind.NAME,name,0,0);
-		return new ExpName(first);
+	public static ExpName makeExpNameGlobal(String name) {
+		Token first = new Token(NAME,name,0,0);
+		return new ExpName(first,-1);
 	}
 	
 	public static List<Stat>  makeStatList(Stat ... ss){
@@ -91,7 +90,7 @@ public class Expressions {
 	}
 
 	public static Block makeEmptyBlock() {
-		Token first = new Token(Kind.SEMI, "dummy",0,0);
+		Token first = new Token(SEMI, "dummy",0,0);
 		List<Stat> stats = new ArrayList<>();
 		return new Block(first,stats);
 	}
@@ -103,12 +102,12 @@ public class Expressions {
 	public static Block makeBlock(Stat ... stats) {
 		Token first;
 		if(stats.length>0) first = stats[0].firstToken;
-		else first = new Token(Kind.SEMI, "dummy",0,0);
+		else first = new Token(SEMI, "dummy",0,0);
 		return new Block(first,new ArrayList<Stat>(Arrays.asList(stats)));
 		}
 	
 	public static StatAssign makeStatAssign(List<Exp> lhs, List<Exp> rhs) {
-		Token first = lhs.size()>0 ? lhs.get(0).firstToken : new Token(Kind.SEMI, "dummy",0,0);
+		Token first = lhs.size()>0 ? lhs.get(0).firstToken : new Token(SEMI, "dummy",0,0);
 		return new StatAssign(first,lhs,rhs);
 	}
 	
@@ -119,7 +118,7 @@ public class Expressions {
 	}
 
 	public static ExpInt makeExpInt(int i) {
-		Token first = new Token(Kind.INTLIT, Integer.toString(i),0,0);
+		Token first = new Token(INTLIT, Integer.toString(i),0,0);
 		return new ExpInt(first);
 	}
 
@@ -142,18 +141,18 @@ public class Expressions {
 	}
 	
 	public static Name makeName(String name) {
-			Token first = new Token(Kind.NAME,name,0,0);
+			Token first = new Token(NAME,name,0,0);
 			return new Name(first, name);
 		}
 	
 
 	public static StatLabel makeStatLabel(String name) {
 		Name n = makeName(name);
-		return new StatLabel(n.firstToken,n);	
+		return new StatLabel(n.firstToken,n, null, 0);	
 	}
 
 	public static StatGoto makeStatGoto(String name) {
-		Token first = new Token(Kind.KW_goto,"goto",0,0);
+		Token first = new Token(KW_goto,"goto",0,0);
 		Name n =  new Name(first, name);
 		return new StatGoto(first,n);
 	}
@@ -164,7 +163,7 @@ public class Expressions {
 	}
 
 	public static StatBreak makeStatBreak() {
-		Token first = new Token(Kind.KW_break,"break",0,0);
+		Token first = new Token(KW_break,"break",0,0);
 		return new StatBreak(first);
 	}
 

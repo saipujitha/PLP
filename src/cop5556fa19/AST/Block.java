@@ -18,7 +18,9 @@ public class Block extends Stat {
 		return "Block [stats=" + stats +  "]";
 	}
 	
-	
+	public List<Stat> getStat(){
+		return stats;
+	}
 
 	@Override
 	public int hashCode() {

@@ -57,6 +57,7 @@ import cop5556fa19.AST.StatLocalFunc;
 import cop5556fa19.AST.StatRepeat;
 import cop5556fa19.AST.StatWhile;
 import cop5556fa19.AST.Var;
+import interpreter.StaticSemanticException;
 import cop5556fa19.Token.Kind;
 import static cop5556fa19.Token.Kind.*;
 import static org.junit.Assert.assertNotNull;
@@ -77,7 +78,7 @@ public class Parser {
 	Token t;  //invariant:  this is the next token
 
 
-	Parser(Scanner s) throws Exception {
+	public Parser(Scanner s) throws Exception {
 		this.scanner = s;
 		t = scanner.getNext(); //establish invariant
 	}
@@ -88,6 +89,7 @@ public class Parser {
 	private ParList p;
 	private FuncBody functionbody;
     List<Field> fieldList = new ArrayList<>();
+    List<Stat> statList = new ArrayList<Stat>();
     Token check = null;
     
     public Chunk parse() throws Exception {
@@ -117,7 +119,6 @@ public class Parser {
 		return new Block(t,statList); }
     
     private Block block() throws Exception {
-		List<Stat> statList = new ArrayList<Stat>();
 		if(t.kind == Kind.SEMI)
 		{
 			return Expressions.makeBlock();
@@ -127,6 +128,7 @@ public class Parser {
 			return Expressions.makeBlock();
 		}
 		while(!isKind(EOF) ) { 
+			fieldList  = new ArrayList<>();
 			statList.add(andBlock());
 			check = t;
 			if(isKind(SEMI)) {
@@ -216,6 +218,12 @@ public class Parser {
  				ExpFunctionCall eFc = new ExpFunctionCall(first,en1,expList);
  				nameList.add(eFc);
  			}
+ 			 else if(isKind(LSQUARE)) {
+				 consume();
+				 ExpTableLookup eTL = new ExpTableLookup(first,en1,exp());
+				 consume();
+				 nameList.add(eTL);
+			 }
  			else {nameList.add(en1);}
  		}else {
  			expList.add(exp());
@@ -250,7 +258,7 @@ public class Parser {
     
     private ExpTableLookup makeVarDotken (Token first,Exp en ) throws Exception {
     	ExpString en1 = new ExpString(t);
-    	ExpTableLookup eTL = new ExpTableLookup(first,en,en1);
+    	ExpTableLookup eTL = new ExpTableLookup(first,en, en1) ;
     	consume();
 		while(isKind(DOT)){
 			consume();
@@ -430,7 +438,7 @@ public class Parser {
 				 temp = consume();
 				if(t.kind == Kind.COLONCOLON) {
 				Name label = new Name(temp,temp.getName());
-			StatLabel sL = new StatLabel(temp,label);
+			StatLabel sL = new StatLabel(temp,label,null,0); //need to update the null
 			consume();
 			return sL;
 			}}
@@ -512,13 +520,11 @@ public class Parser {
 							block = insideBlock();
 							blockList.add(block);
 					}
-				  consume();
 					}
 					if(check.kind == Kind.KW_else) {
 						consume();
 						block = insideBlock();
 						blockList.add(block);
-						consume();
 					}
 					if(check.kind == Kind.KW_end){
 						StatIf sI = new StatIf(first,expList,blockList);
@@ -573,8 +579,13 @@ public class Parser {
 			}
 		}}}}}
     	else if(isKind(KW_return)) {
+    		int len = statList.size();
+    		if(len != 0) {
+    		Stat ret = statList.get(len-1);
+    		if(ret instanceof RetStat ) {
+    			error(t,"return");
+    		}}
 			RetStat eS = returnStat();
-			consume();
 			return eS;
 		}
     	else if(isKind(LPAREN)) {
@@ -595,10 +606,26 @@ public class Parser {
     	{
     		List<Exp>expList = new ArrayList<>();
         	List<Exp> nameList = new ArrayList<>();
+        	Exp en ;
     		nameList = makeVarName();
     		if(isKind(ASSIGN)){
 			consume();
-			expList.add(exp());
+			en = exp();
+			if(isKind(COMMA)|| isKind(DOT)) {
+				while(isKind(COMMA)) {
+					expList.add(en);
+					consume();
+					expList.add(exp());
+				}
+				while(isKind(DOT)) {
+					consume();
+					ExpTableLookup et = makeVarDotken(first,en);
+					 expList.add(et);
+					}
+			}else {
+				expList.add(en);
+			}
+				
 		}
     		/*else if(nameList.size() ==1 ) {
 			ExpFunctionCall expfunc = (ExpFunctionCall) nameList.get(0);
@@ -614,9 +641,10 @@ public class Parser {
     	Token first = t;
 			List<Exp> expList   = new ArrayList<>();
 			consume();
-			while(!isKind(EOF)){
-				expList.add( exp());
-			}
+			expList.add( exp());
+			while (isKind(COMMA)) {
+				consume();
+				expList.add( exp());}
 			RetStat reStat = new RetStat(first,expList);
 			return reStat;
     }
@@ -648,11 +676,13 @@ private Exp tableConstructor() throws Exception {
 	Nameflag = false;
 	//List<Field> fieldList = new ArrayList<>();
 	while(isKind(RCURLY) == false ) {
+		Nameflag = true;
 		if(isKind(LSQUARE)) {
 			fieldExpGen();
 			if(isKind(COMMA) || isKind(SEMI)) {
 				consume();
 			}else if(isKind(RCURLY)) {
+				consume();
 				break;
 			}
 			else {
@@ -661,7 +691,13 @@ private Exp tableConstructor() throws Exception {
 			} 
 		}else {
 			e0 = exp();
-			if(Nameflag == false){
+			if((e0 instanceof ExpName) && isKind(ASSIGN)) {
+				consume();
+				Exp e1 = exp();
+				Name name = new  Name(first,((ExpName) e0).name);
+				FieldNameKey fname = new FieldNameKey(first, name, e1);
+				fieldList.add(fname);
+			}else {
 				FieldImplicitKey fimp = new FieldImplicitKey(first,e0);
 				fieldList.add(fimp);
 			}
@@ -676,6 +712,8 @@ private Exp tableConstructor() throws Exception {
 			}
 		}
 		
+	}if(isKind(RCURLY)) {
+		consume();
 	}
 	ExpTable exptab = new ExpTable(first,fieldList);
 	return exptab;
@@ -706,13 +744,6 @@ private void fieldExpGen() throws Exception {
 	}
 	} 
 
-private void fieldNameGen(Name name) throws Exception{
-	Token first = t;
-	 consume();
-	 Exp e0 = exp();
-	 FieldNameKey fnamkey = new FieldNameKey(first,name,e0);
-	 fieldList.add(fnamkey);
-}
 
 private Exp andExp() throws Exception{
    Token first = t;
@@ -915,14 +946,33 @@ private Exp checkForDotdot() throws Exception {
 		 switch(t.kind) {   // 1+2*3
 			
 			case NAME:
-			{
+			{   Token first = t;
 				ExpName en = new ExpName(t);
 				Name inName = new Name(t,t.text);
 				consume();
-				if(isKind(ASSIGN)) {
-					fieldNameGen(inName);
-					Nameflag = true;
+				
+				 if(isKind(LPAREN)) {
+					List<Exp> eList = new ArrayList<>();
+					consume();
+					while(!isKind(RPAREN)) {
+						eList.add(exp());
+						while(isKind(COMMA)) {consume();}
+					}
+					consume();
+                  ExpFunctionCall eF = new ExpFunctionCall(t,en,eList);
+                  return eF;
 				}
+				 else if(isKind(LSQUARE)) {
+					 consume();
+					 ExpTableLookup eTL = new ExpTableLookup(first,en,exp());
+					 consume();
+					 while(isKind(LSQUARE)) {
+						 consume();
+						  eTL = new ExpTableLookup(first,eTL,exp());
+						  consume();
+					 }
+					 return eTL;
+				 }
 		    	return en;
 			}
 			case STRINGLIT:
@@ -930,10 +980,6 @@ private Exp checkForDotdot() throws Exception {
 				ExpString es = new ExpString(t);
 				Name inName = new Name(t,t.text);
 				consume();
-				if(isKind(ASSIGN)) {
-					fieldNameGen(inName);
-					Nameflag = true;
-				}
 				return es;	
 			}
 			case INTLIT:
@@ -941,10 +987,6 @@ private Exp checkForDotdot() throws Exception {
 				ExpInt ei = new ExpInt(t);
 				Name inName = new Name(t,t.text);
 				consume();
-				if(isKind(ASSIGN)) {
-					fieldNameGen(inName);
-					Nameflag = true;
-				}
 				return ei;
 			}	
 			case KW_true:
@@ -952,10 +994,6 @@ private Exp checkForDotdot() throws Exception {
 				ExpTrue et = new ExpTrue(t);
 				Name inName = new Name(t,t.text);
 				consume();
-				if(isKind(ASSIGN)) {
-					fieldNameGen(inName);
-					Nameflag = true;
-				}
 				return et;
 			}
 			case KW_false:
@@ -963,10 +1001,6 @@ private Exp checkForDotdot() throws Exception {
 				ExpFalse ef = new ExpFalse(t);
 				Name inName = new Name(t,t.text);
 				consume();
-				if(isKind(ASSIGN)) {
-					fieldNameGen(inName);
-					Nameflag = true;
-				}
 				return ef;
 			}
 			case KW_nil:
@@ -974,10 +1008,6 @@ private Exp checkForDotdot() throws Exception {
 				ExpNil ef = new ExpNil(t);
 				Name inName = new Name(t,t.text);
 				consume();
-				if(isKind(ASSIGN)) {
-					fieldNameGen(inName);
-					Nameflag = true;
-				}
 				return ef;
 			}
 			case LPAREN:
