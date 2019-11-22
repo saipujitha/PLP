@@ -252,6 +252,7 @@ public abstract class ASTVisitorAdapter implements ASTVisitor {
             					  iter1 = statList.get(j);  
             				  }
             				  if(iter1 instanceof StatLabel) {
+            					  gotoFlag = false;
             					  break;
             				  }else { throw new StaticSemanticException(block.firstToken, "GoTo");}
             			  }
