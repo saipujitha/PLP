@@ -553,7 +553,7 @@ public class ScannerTest {
 			assertEquals(t.text,"::");
 		}
 	
-	//@Test 
+	@Test 
 	 public	void tes31() throws Exception {
 			Reader r = new StringReader("\\n");
 			Scanner s = new Scanner(r);
@@ -757,7 +757,7 @@ public class ScannerTest {
 			 
 		}
 	
-	//@Test 
+	@Test 
 	 public	void tes44() throws Exception {
 			Reader r = new StringReader("\\b");
 			Scanner s = new Scanner(r);
@@ -768,7 +768,7 @@ public class ScannerTest {
 			assertEquals(t.text,"\b");
 		}
 	
-	//@Test 
+	@Test 
 	 public	void tes45() throws Exception {
 			Reader r = new StringReader("\\a");
 			Scanner s = new Scanner(r);
@@ -790,7 +790,7 @@ public class ScannerTest {
 			assertEquals(t.text,"\u0011");
 		}
 	
-	//@Test 
+	@Test 
 	 public	void tes47() throws Exception {
 			Reader r = new StringReader("\\v\\a");
 			Scanner s = new Scanner(r);
@@ -878,7 +878,7 @@ public class ScannerTest {
 			 
 		}
 	
-	@Test
+	//@Test
 	public void test54() throws Exception {
 		String file = "testInputFiles\\test2.input"; 
 		Reader r = new BufferedReader(new FileReader(file));

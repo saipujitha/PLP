@@ -474,14 +474,14 @@ public class Parser {
     	else if(t.kind == Kind.KW_while) 
 		{
 			consume();
-			e10 = exp();
+			Exp eW = exp();
 			if(t.kind == Kind.KW_do)
 			{
 				consume();
 				
 				block = insideBlock();
 				if(check.kind == Kind.KW_end) {
-					StatWhile sW = new StatWhile(first,e10,block);
+					StatWhile sW = new StatWhile(first,eW,block);
 					consume();
 					return sW;
 				}

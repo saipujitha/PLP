@@ -70,7 +70,7 @@ import interpreter.StaticSemanticException;
 		}
 		
 		
-		//////@Test
+		@Test
 		void runEmpty() throws Exception{
 			String input = "";
 			List<LuaValue> ret = interpret(input);
@@ -78,7 +78,7 @@ import interpreter.StaticSemanticException;
 			assertEquals(expected,ret);
 		}
 		
-		//////@Test
+		@Test
 		void run1() throws Exception{
 			String input = "return 42";
 			show(input);
@@ -89,7 +89,7 @@ import interpreter.StaticSemanticException;
 			assertEquals(expected, ret);
 		}
 		
-		//////@Test
+		@Test
 		void run2() throws Exception{
 			String input = "x=35 return x";
 			show(input);
@@ -100,7 +100,7 @@ import interpreter.StaticSemanticException;
 			assertEquals(expected, ret);
 		}
 			
-		//////@Test
+		@Test
 		void fail_run2returns() throws Exception{
 			String input = "return 42; return 53;";
 			show(input);
@@ -111,7 +111,7 @@ import interpreter.StaticSemanticException;
 		}
 		
 		
-		//////@Test
+		@Test
 		void run3() throws Exception{
 			String input = "do return 42 end return 53 ";
 			show(input);
@@ -123,7 +123,7 @@ import interpreter.StaticSemanticException;
 		
 
 		
-		//////@Test 
+		@Test 
 		void if0() throws Exception {
 			String input = "if true then x=3 end return x";
 			show(input);
@@ -133,7 +133,7 @@ import interpreter.StaticSemanticException;
 			assertEquals(expected, ret);
 		}
 		
-		//////@Test 
+		@Test 
 		void if1() throws Exception {
 			String input = "if false then x=3 end return x";
 			show(input);
@@ -144,7 +144,7 @@ import interpreter.StaticSemanticException;
 			assertEquals(expected, ret);
 		}
 		
-		//////@Test 
+		@Test 
 		void ifnilIsFalse() throws Exception {
 			String input = "if x then x=3 end return x";
 			show(input);
@@ -155,7 +155,7 @@ import interpreter.StaticSemanticException;
 			assertEquals(expected, ret);
 		}
 		
-		//////@Test 
+		@Test 
 		void ifzeroistrue() throws Exception {
 			String input = "if 0 then x=3 end return x";
 			show(input);
@@ -165,7 +165,7 @@ import interpreter.StaticSemanticException;
 			assertEquals(expected, ret);
 		}
 		
-		//////@Test 
+		@Test 
 		void if2() throws Exception {
 			String input = "if x then x=3 elseif y then y=4 elseif true then x=10 else y=11 end return x,y";
 			show(input);
@@ -177,7 +177,7 @@ import interpreter.StaticSemanticException;
 			assertEquals(expected, ret);
 		}
 		
-		//////@Test 
+		@Test 
 		void fail_ifgoto() throws Exception {
 			String input = "y = 0 if x then x=3 elseif y then y=4 goto label1 elseif true then ::label1:: x=10  else y=11 end z = 12 y=20 return x,y,z";
 			show(input);
@@ -186,13 +186,17 @@ import interpreter.StaticSemanticException;
 			});		
 		}
 		
-		//@Test 
+		@Test 
 		void if3() throws Exception {
 			String input = "if x then x=3 elseif y then y=4 elseif true then x=10 goto label1 else y=11 end z = 12 ::label1:: y=20 return x,y,z";
 			show(input);
-			assertThrows(StaticSemanticException.class,()->{
-				List<LuaValue> ret = interpret(input);
-			});
+			List<LuaValue> ret = interpret(input);
+			show(ret);
+			List<LuaValue> expected = new ArrayList<>();
+			expected.add(LuaInt.valueOf(10));
+			expected.add(LuaInt.valueOf(20));
+			expected.add(LuaNil.nil);
+			assertEquals(expected, ret);
 		}
 		
 	    @Test 
@@ -282,7 +286,7 @@ import interpreter.StaticSemanticException;
 			assertEquals(expected,ret);
 		}
 		
-		//////////@Test
+		@Test
 		void break0() throws Exception {
 			String input = "x=1 do x=2 do x=3 do break x=4 y0=0 end y1=1 end y2=2 end return x,y0,y1,y2 ";
 			show(input);
@@ -296,7 +300,7 @@ import interpreter.StaticSemanticException;
 			assertEquals(expected, ret);
 		}
 		
-		//////////@Test
+		@Test
 		void whilebreak0() throws Exception {
 			String input = "i = 10  "
 					+ "\nsum = 0 "
@@ -317,7 +321,7 @@ import interpreter.StaticSemanticException;
 		}
 		
 		
-		//////////@Test
+		@Test
 		void whilebreak1() throws Exception {
 			String input = "i = 10  "
 					+ "\nsum = 0 "
@@ -338,7 +342,7 @@ import interpreter.StaticSemanticException;
 		}	
 		
 		
-		//////@Test
+		@Test
 		void table5() throws Exception {
 			String input = ""
 					+ "f1 = 777"
@@ -365,7 +369,7 @@ import interpreter.StaticSemanticException;
 			assertEquals(expectedList,ret);
 		}
 		
-		//////@Test
+		@Test
 		void table0() throws Exception {
 			String input = "a = {} return a;";
 			show(input);
@@ -377,7 +381,7 @@ import interpreter.StaticSemanticException;
 			assertEquals(expectedList,ret);
 		}
 		
-		//////@Test
+		@Test
 		void table1() throws Exception {
 			String input = "a = {\"x\", 2, 3} return a;";
 			show(input);
@@ -392,7 +396,7 @@ import interpreter.StaticSemanticException;
 			assertEquals(expectedList,ret);
 		}
 		
-		//////@Test
+		@Test
 		void table2() throws Exception {
 			String input = "a = {[\"x\"]= 2, [\"y\"]=3}";
 			show(input);
@@ -406,7 +410,7 @@ import interpreter.StaticSemanticException;
 			assertEquals(expectedList,ret);
 		}
 		
-		//////@Test
+		@Test
 		void table3() throws Exception {
 			String input = "a = {x=2, y=3}";
 			show(input);
@@ -421,7 +425,7 @@ import interpreter.StaticSemanticException;
 		}
 		
 		
-		//////@Test
+		@Test
 		void table4() throws Exception {
 			String input = "x = \"hello\" y= \"goodbye\" a = {[x]=2, [y]=3}";
 			show(input);
@@ -435,7 +439,7 @@ import interpreter.StaticSemanticException;
 			assertEquals(expectedList,ret);
 		}
 		
-		//////@Test
+		@Test
 		void table7() throws Exception {
 			String input = "a= {1,3,5} b= {2,4,6} x = {a,b} y= {[j]=b,b} z = {[25]=x, [k]=y} return x,y,z,x[1],x[2],y[j],y[1],z[25],z[k]";
 			show(input);
@@ -444,7 +448,7 @@ import interpreter.StaticSemanticException;
 		}
 		
 		
-		//////@Test
+		@Test
 		void table6() throws Exception{
 			String input = "a= {1,3,5} b= {2,4,6} x = {a,b} y= {[j]=b,b} z = {[25]=x, [k]=y} return z,x,y";//a= {1,3,5} b= {2,4,6} x = {a,b} y= {[j]=b,b} z = {[25]=x, [k]=y} return z
 			show(input);
@@ -482,7 +486,7 @@ import interpreter.StaticSemanticException;
 			assertEquals(expected,ret);
 		}
 		
-		//////////@Test
+		@Test
 		void gotoTest1() throws Exception{
 			String input = "a=1; b=2; do a=3 goto label1 end b=3 ::label1:: a=4 return a,b";
 			show(input);
@@ -492,7 +496,7 @@ import interpreter.StaticSemanticException;
 			assertEquals(expected,ret);
 		}
 		
-		//////////@Test
+		@Test
 		void gotoTest2() throws Exception{
 			String input = "a=0; do a=1 do a=2 goto label1  a=3 end a=4 end a=5 ::label1:: b=6 return a,b";
 			show(input);
@@ -502,7 +506,7 @@ import interpreter.StaticSemanticException;
 			assertEquals(expected,ret);			
 		}
 		
-		//////@Test
+		@Test
 		void testBinary0() throws Exception{
 			String input = "a=2+3 b=3-a c=2*4 d = c/2 e = c%3 return a,b,c,d,e";
 			show(input);
@@ -513,7 +517,7 @@ import interpreter.StaticSemanticException;
 		}
 		
 		
-		//////@Test
+		@Test
 		void testSetField0() throws Exception{
 			String input = "a = 4; t={} ; t[a]=5; return t";
 			show(input);
@@ -528,7 +532,7 @@ import interpreter.StaticSemanticException;
 		
 
 		
-		//////@Test 
+		@Test 
 		void testSetField1() throws Exception{
 			String input = "a = {1,2,3} t= {a} dummy = print(t[1][3]) return t";
 			show(input);
@@ -546,5 +550,19 @@ import interpreter.StaticSemanticException;
 			assertEquals(expectedList,ret);
 		}
 		
-
+		@Test
+		void testReturn() throws Exception{
+			String input = "return (3 * 4) / (2 % 3)//(-5)";
+			show(input);
+			List<LuaValue> ret = interpret(input);
+			LuaInt a = (LuaInt) ret.get(0);
+			LuaInt expected = new LuaInt(-2);
+			assertEquals(expected,a);
+		}
+		
+		
+		
+		
+		
+		
 }
